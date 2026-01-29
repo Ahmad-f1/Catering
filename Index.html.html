@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dawat — Catering Quote & Menu (PDF Export)</title>
+<style>
+  :root{
+    --accent:#0b4fa8;
+    --gold:#c79a2b;
+    --bg:#f6f7f9;
+    --card:#ffffff;
+    --muted:#6c6f76;
+    --radius:12px;
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+  }
+  body{margin:0;background:var(--bg);color:#222;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px}
+  .app{width:100%;max-width:1200px}
+  .topbar{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+  .brand h1{margin:0;font-size:20px;color:var(--accent)}
+  .layout{display:grid;grid-template-columns:1fr 420px;gap:18px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(12,18,28,0.06);padding:18px}
+  .wizard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .stepText{color:var(--muted);font-size:13px}
+  .prog{height:8px;background:#e9f1ff;border-radius:999px;overflow:hidden;margin-top:10px}
+  .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));width:0%}
+  .step{display:none}
+  .step.active{display:block}
+  label{display:block;margin-bottom:8px;color:#222}
+  input[type="number"], select, .radio-row, input[type="text"], input[type="email"], input[type="tel"], textarea, input[type="date"]{width:100%;padding:10px;border-radius:10px;border:1px solid #e7ebf0;font-size:15px}
+  textarea{min-height:80px;resize:vertical}
+  .radio-row{display:flex;gap:12px;flex-wrap:wrap}
+  .row{display:flex;gap:12px;align-items:center}
+  .small{font-size:13px;color:var(--muted)}
+  .controls{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+  .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid #e2e6ee}
+  .summary h3{margin-top:0}
+  .summary .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee}
+  .muted{color:var(--muted)}
+  .menu-modal{position:fixed;inset:0;background:rgba(6,10,20,0.55);display:none;align-items:flex-start;justify-content:center;padding:40px;z-index:60}
+  .menu-panel{background:var(--card);width:100%;max-width:1100px;border-radius:14px;padding:18px;max-height:86vh;overflow:auto}
+  .menu-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .menu-card{border-radius:10px;padding:12px;border:1px solid #eef3fb;background:linear-gradient(180deg,#fff,#fff);cursor:pointer;position:relative;min-height:88px}
+  .menu-card h4{margin:0 0 6px;font-size:15px}
+  .menu-card p{margin:0;color:var(--muted);font-size:13px}
+  .menu-card .price{position:absolute;top:10px;right:10px;background:var(--gold);color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;font-size:13px}
+  .menu-card.selected{outline:3px solid rgba(11,79,168,0.15);box-shadow:0 8px 30px rgba(11,79,168,0.06);transform:translateY(-3px)}
+  .menu-card .selBadge{position:absolute;left:10px;bottom:10px;background:var(--accent);color:#fff;padding:6px 8px;border-radius:8px;font-size:12px}
+  .menu-actions{display:flex;justify-content:space-between;gap:12px;margin-top:12px}
+  .menu-panel button.active{box-shadow:0 6px 18px rgba(11,79,168,0.08);border-color:rgba(11,79,168,0.12)}
+  /* package card styles */
+  .packages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+  .package-card{padding:12px;border-radius:12px;border:1px solid #e9f3ff;background:linear-gradient(180deg,#fff,#fbfdff);cursor:pointer;position:relative;min-height:110px}
+  .package-card h4{margin:0;font-size:16px}
+  .package-card .meta{margin-top:8px;color:var(--muted);font-size:13px}
+  .package-card .perhead{position:absolute;top:12px;right:12px;background:var(--accent);color:#fff;padding:6px 8px;border-radius:8px;font-weight:700}
+  .package-card.selected{outline:3px solid rgba(11,79,168,0.12);box-shadow:0 10px 30px rgba(11,79,168,0.06)}
+  /* pdf preview */
+  #pdfPreview{border:1px solid #eef2f8;padding:12px;border-radius:10px;background:#fff;min-height:400px;overflow:auto}
+  @media(max-width:980px){ .layout{grid-template-columns:1fr} .menu-modal{padding:18px} }
+</style>
+<!-- jsPDF (for client-side HTML -> PDF). If your environment blocks CDN, fallback uses print dialog -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <h1>Dawat:The Art of Cooking — Catering Quote</h1>
+      <p class="small">Normalized menu & instant quoting — choose package then pick dishes</p>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: Wizard -->
+    <div class="card">
+      <div class="wizard-header">
+        <div>
+          <div style="font-weight:800;font-size:18px">Quick Catering</div>
+          <div id="stepText" class="small muted">Step 1 of 8</div>
+          <div class="prog"><i id="progBar"></i></div>
+        </div>
+        <div class="small muted">Prices editable in script</div>
+      </div>
+
+      <div id="steps">
+        <!-- Step 1: Customer info -->
+        <div class="step active" id="step-customer">
+          <label>1) Customer details</label>
+          <div style="display:grid;gap:8px">
+            <input type="text" id="custName" placeholder="Customer name">
+            <input type="email" id="custEmail" placeholder="Email">
+            <input type="tel" id="custPhone" placeholder="Phone">
+            <input type="date" id="custDate" placeholder="Event date">
+            <textarea id="custAddress" placeholder="Event address / venue"></textarea>
+          </div>
+          <div class="small muted" style="margin-top:8px">We'll include these details in the PDF export.</div>
+        </div>
+
+        <!-- Step 2: Guests -->
+        <div class="step" id="step-guests">
+          <label>2) How many guests?</label>
+          <input type="number" id="guests" min="1" value="120">
+          <div class="small muted" style="margin-top:6px">Enter expected guests. Some packages have minimum guest counts (noted below).</div>
+        </div>
+
+        <!-- Step 3: Service -->
+        <div class="step" id="step-service">
+          <label>3) Service Type</label>
+          <div class="radio-row">
+            <label><input type="radio" name="service" value="table" checked> Table (Plated)</label>
+            <label><input type="radio" name="service" value="buffet"> Buffet</label>
+          </div>
+        </div>
+
+        <!-- Step 4: Package cards -->
+        <div class="step" id="step-packages">
+          <label>4) Choose a Package</label>
+          <select id="packageSelect" style="display:none"></select>
+          <div class="packages-grid" id="packagesGrid"></div>
+          <div style="margin-top:12px">
+            <label><input type="checkbox" id="lockPackage" checked> Use package as-is (no customisation)</label>
+            <div class="small muted">Uncheck to customise package (changes cost £2/head per add/remove). Default: checked.</div>
+          </div>
+        </div>
+
+        <!-- Step 5: Per-guest counts -->
+        <div class="step" id="step-counts">
+          <label>5) Set per-guest counts</label>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+            <div><label>Canapés per guest (0–4)</label><input type="number" id="nCanapes" min="0" max="4" value="2"></div>
+            <div><label>Starters per guest (0–4)</label><input type="number" id="nStarters" min="0" max="5" value="1"></div>
+            <div><label>Mains per guest (0–7)</label><input type="number" id="nMains" min="0" max="10" value="2"></div>
+            <div><label>Desserts per guest (0–3)</label><input type="number" id="nDesserts" min="0" max="4" value="1"></div>
+          </div>
+        </div>
+
+        <!-- Step 6: Menu selection -->
+        <div class="step" id="step-menu">
+          <label>6) Choose Dishes from Menu</label>
+          <div style="margin-bottom:10px">
+            <button type="button" class="btn" id="openMenuBtnInline">Open Full Menu</button>
+            <div class="small muted" style="margin-top:8px">Pick unique items per category up to the counts set earlier. Special items add £2/head. Each juice/mocktail adds £1/head. One bread is free; second bread adds extra per head.</div>
+          </div>
+        </div>
+
+        <!-- Step 7: Add-ons & discount -->
+        <div class="step" id="step-addons">
+          <label>7) Extra add-ons (total, not per head) & discount</label>
+          <div style="display:grid;gap:8px">
+            <div style="display:flex;gap:8px">
+              <input placeholder="Add-on 1 (e.g., Live station)" id="addonLabel1" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <input type="number" id="addonVal1" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+            </div>
+            <div style="display:flex;gap:8px">
+              <input placeholder="Add-on 2" id="addonLabel2" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <input type="number" id="addonVal2" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+            </div>
+            <div style="display:flex;gap:8px">
+              <input placeholder="Add-on 3" id="addonLabel3" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <input type="number" id="addonVal3" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+              <label style="min-width:140px">Discount (%)</label>
+              <input type="number" id="discountPct" min="0" max="50" value="0" style="width:120px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <div class="small muted" style="margin-left:8px">0 or 5–50% (0 = none).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 8: PDF Preview & Download -->
+        <div class="step" id="step-pdf">
+          <label>8) Preview & Download PDF</label>
+          <div class="small muted" style="margin-bottom:8px">This preview shows exactly what will be exported to the A4 PDF. Click "Download PDF" to generate and download.</div>
+          <div id="pdfPreview" aria-live="polite"></div>
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button type="button" class="btn" id="downloadPdfBtn">Download PDF</button>
+            <button type="button" class="btn ghost" id="openPdfInNewTab">Open preview in new tab</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- GLOBAL NAV CONTROLS -->
+      <div class="controls" style="margin-top:12px">
+        <button type="button" class="btn ghost" id="prevGlobal">Back</button>
+        <button type="button" class="btn" id="nextGlobal">Next</button>
+      </div>
+
+      <div style="margin-top:14px;display:flex;justify-content:space-between;gap:8px">
+        <div class="small muted">Tip: edit prices & package defaults near the top of the script.</div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn ghost" id="resetBtn">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="card summary">
+      <h3>Live Quote</h3>
+      <div id="summaryLines">
+        <div class="line"><div class="muted">Customer</div><div id="sCustomer">-</div></div>
+        <div class="line"><div class="muted">Event date</div><div id="sDate">-</div></div>
+        <div class="line"><div class="muted">Guests</div><div id="sGuests">-</div></div>
+        <div class="line"><div class="muted">Service</div><div id="sService">-</div></div>
+        <div class="line"><div class="muted">Package</div><div id="sPackage">-</div></div>
+        <div class="line"><div class="muted">Per head (total)</div><div id="sPerHead">-</div></div>
+        <div class="line"><div class="muted">Drink surcharge</div><div id="sDrinks">£0.00</div></div>
+        <div class="line"><div class="muted">Bread extras</div><div id="sBread">£0.00</div></div>
+        <div class="line"><div class="muted">Buffet discount</div><div id="sBuffet">£0.00</div></div>
+        <div class="line"><div class="muted">Add-ons (total)</div><div id="sAddons">£0.00</div></div>
+        <div class="line"><div class="muted">Custom adjustments & specials</div><div id="sAdjust">£0.00</div></div>
+        <div class="line"><div class="muted">Discount</div><div id="sDiscount">0%</div></div>
+        <div class="line"><div class="muted big">Total</div><div id="sTotal" class="big">£0.00</div></div>
+        <div style="margin-top:12px">
+          <button type="button" class="btn" id="copyBill">Copy Bill</button>
+          <button type="button" class="btn ghost" id="copyFull">Copy Full Quote</button>
+          <button type="button" class="btn" id="openMenuBtn2" style="margin-left:6px">Open Menu</button>
+        </div>
+      </div>
+      <div style="margin-top:12px" class="small muted">After picking dishes, totals refresh automatically. Go to the final step to download the PDF.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu modal (full normalized menu) -->
+<div class="menu-modal" id="menuModal" role="dialog" aria-modal="true">
+  <div class="menu-panel card">
+    <div class="menu-header">
+      <div>
+        <h3 style="margin:0">Full Menu — pick your items</h3>
+        <div class="small muted">Click a card to select. Selected cards get highlighted. Limits enforced per chosen per-guest counts. Breads: one included free; up to 2 breads.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="small muted">Selected: <span id="selCount">0</span></div>
+        <button type="button" class="btn ghost" id="closeMenu">Close</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <button type="button" class="btn ghost" data-cat="all">All</button>
+      <button type="button" class="btn ghost" data-cat="juices">Standard Juices</button>
+      <button type="button" class="btn ghost" data-cat="drinks">Drinks / Mocktails</button>
+      <button type="button" class="btn ghost" data-cat="canapes">Canapés</button>
+      <button type="button" class="btn ghost" data-cat="starters">Starters</button>
+      <button type="button" class="btn ghost" data-cat="rice">Rice Dishes</button>
+      <button type="button" class="btn ghost" data-cat="mains_nonveg">Main Courses (Non-Vegetarian)</button>
+      <button type="button" class="btn ghost" data-cat="mains_veg">Main Courses (Vegetarian)</button>
+      <button type="button" class="btn ghost" data-cat="desserts">Desserts</button>
+      <button type="button" class="btn ghost" data-cat="breads">Breads</button>
+      <button type="button" class="btn ghost" data-cat="selector">Selector Menus</button>
+      <button type="button" class="btn ghost" data-cat="breakfast">Breakfast / Afternoon Tea</button>
+    </div>
+
+    <div id="menuContent"></div>
+
+    <div class="menu-actions">
+      <div class="small muted">Tip: choose up to the selected per-guest count in each category (unique items).</div>
+      <div>
+        <button type="button" class="btn ghost" id="clearSelections">Clear</button>
+        <button type="button" class="btn" id="applySelections">Apply & Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= BUTTON & FORM SAFETY ================= */
+document.addEventListener("submit", e => { e.preventDefault(); e.stopPropagation(); }, true);
+function forceButtonTypes() { document.querySelectorAll("button").forEach(b => b.type = "button"); }
+forceButtonTypes();
+new MutationObserver(forceButtonTypes).observe(document.body, { childList:true, subtree:true });
+
+/* ================= HELPERS ================= */
+const fmt = n => Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const CURRENCY = "£";
+
+/* ================= WIZARD NAV ================= */
+const steps = [...document.querySelectorAll(".step")];
+let curStep = 0;
+const stepText = document.getElementById("stepText");
+const progBar = document.getElementById("progBar");
+
+function onEnterStep(i){
+  // when user enters the final PDF step, refresh preview
+  const pdfStepIndex = steps.length - 1;
+  if(i === pdfStepIndex){
+    renderPdfPreview();
+  }
+}
+
+function showStep(i){
+  steps.forEach((s,idx)=>s.classList.toggle("active",idx===i));
+  curStep=i;
+  stepText.textContent = `Step ${i+1} of ${steps.length}`;
+  progBar.style.width = `${(i/(steps.length-1))*100}%`;
+  onEnterStep(i);
+}
+showStep(0);
+
+document.getElementById("nextGlobal").onclick = () => {
+  if(curStep < steps.length-1) showStep(curStep+1);
+  else computeQuote();
+};
+document.getElementById("prevGlobal").onclick = () => {
+  if(curStep>0) showStep(curStep-1);
+};
+
+/* ================= PRICING & PACKAGE DEFAULTS ================= */
+const PRICING = {
+  packages:{
+    Bronze:30, Silver:32, Gold:35, Diamond:40, Platinum:45,
+    "Crystal (Selector)":0, "Pearl (Selector)":0,
+    "Breakfast / Afternoon Tea":0,
+    "Deluxe Breakfast Menu":0,
+    "Deluxe Mehndi Menu":0,
+    Standard:0, Custom:15
+  },
+  under100Surcharge:3,
+  changeAddSubPerHead:2,           // used for package customisation & second bread per-head extra
+  specialItemPerHead:2,            // special item surcharge per head
+  drinkSurchargePerSelectedDrinkPerHead:1, // £1 per selected juice/mocktail per head
+  buffetDiscountPerHead:3          // buffet reduces £3/head
+};
+
+const PACKAGE_DEFAULTS = {
+  Bronze:{canapes:0,starters:2,mains:2,desserts:1},
+  Silver:{canapes:0,starters:3,mains:3,desserts:2},
+  Gold:{canapes:0,starters:4,mains:4,desserts:2},
+  Diamond:{canapes:2,starters:4,mains:4,desserts:3},
+  Platinum:{canapes:3,starters:5,mains:5,desserts:3},
+  Standard:{canapes:0,starters:1,mains:2,desserts:1},
+  Custom:{canapes:0,starters:0,mains:0,desserts:0}
+};
+
+/* ================= ELEMENTS ================= */
+const guestsEl = document.getElementById("guests");
+const packageSelect = document.getElementById("packageSelect"); // hidden but used by logic
+const lockPackage = document.getElementById("lockPackage");
+const nCanapes = document.getElementById("nCanapes");
+const nStarters = document.getElementById("nStarters");
+const nMains = document.getElementById("nMains");
+const nDesserts = document.getElementById("nDesserts");
+
+const custName = document.getElementById('custName');
+const custEmail = document.getElementById('custEmail');
+const custPhone = document.getElementById('custPhone');
+const custAddress = document.getElementById('custAddress');
+const custDate = document.getElementById('custDate');
+
+const discountPctEl = document.getElementById('discountPct');
+const pdfPreviewEl = document.getElementById('pdfPreview');
+
+/* Populate hidden package select (compat) */
+for(const k in PRICING.packages){
+  const opt = document.createElement("option");
+  opt.value = k;
+  const p = PRICING.packages[k];
+  opt.textContent = p>0 ? `${k} — £${p}/head` : `${k} — price on request`;
+  packageSelect.appendChild(opt);
+}
+
+/* Helpers for package defaults and lock */
+function applyPackageDefaults(pkg){
+  const d = PACKAGE_DEFAULTS[pkg];
+  if(!d) return;
+  nCanapes.value = d.canapes;
+  nStarters.value = d.starters;
+  nMains.value = d.mains;
+  nDesserts.value = d.desserts;
+}
+function updateLock(){
+  const locked = lockPackage.checked && packageSelect.value!=="Custom";
+  [nCanapes,nStarters,nMains,nDesserts].forEach(i=>i.disabled=locked);
+  if(locked) applyPackageDefaults(packageSelect.value);
+}
+packageSelect.onchange = () => {
+  applyPackageDefaults(packageSelect.value);
+  updateLock();
+  const removed = enforceSelectionLimits();
+  if(removed > 0) alert(`${removed} previously selected item(s) were removed to fit the new package limits.`);
+  computeQuote();
+};
+lockPackage.onchange = () => { updateLock(); computeQuote(); };
+
+/* Render packages as cards */
+const packagesGrid = document.getElementById('packagesGrid');
+function renderPackagesGrid(){
+  packagesGrid.innerHTML = '';
+  Object.keys(PRICING.packages).forEach(pkgName => {
+    const price = PRICING.packages[pkgName];
+    const defaults = PACKAGE_DEFAULTS[pkgName] || {canapes:0,starters:0,mains:0,desserts:0};
+    const card = document.createElement('div');
+    card.className = 'package-card';
+    card.dataset.pkg = pkgName;
+    const h = document.createElement('h4');
+    h.textContent = pkgName;
+    card.appendChild(h);
+    const mh = document.createElement('div');
+    mh.className = 'meta';
+    mh.innerHTML = `Canapés: <strong>${defaults.canapes}</strong> · Starters: <strong>${defaults.starters}</strong><br>Mains: <strong>${defaults.mains}</strong> · Desserts: <strong>${defaults.desserts}</strong>`;
+    card.appendChild(mh);
+    const ph = document.createElement('div');
+    ph.className = 'perhead';
+    ph.textContent = price>0 ? `£${price}/head` : 'Price on request';
+    card.appendChild(ph);
+
+    if(packageSelect.value === pkgName){
+      card.classList.add('selected');
+    }
+
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.package-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      packageSelect.value = pkgName;
+      lockPackage.checked = true;
+      updateLock();
+      applyPackageDefaults(pkgName);
+      packageSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      computeQuote();
+    });
+
+    packagesGrid.appendChild(card);
+  });
+}
+
+/* ================= FULL MENU (with breads) ================= */
+const MENU = [
+  /* juices */
+  {id:'j_mango', name:'Mango Juice', category:'juices', special:false},
+  {id:'j_lychee', name:'Lychee Juice', category:'juices', special:false},
+  {id:'j_passion', name:'Passion Fruit Juice', category:'juices', special:false},
+  {id:'j_tropical', name:'Tropical Fruit Juice', category:'juices', special:false},
+  {id:'j_pomegranate', name:'Pomegranate Juice', category:'juices', special:false},
+  {id:'j_pineapple_coco', name:'Pineapple & Coconut', category:'juices', special:false},
+  {id:'j_mango_coco', name:'Mango & Coconut', category:'juices', special:false},
+  {id:'j_mango_lime_mint', name:'Mango, Lime & Mint', category:'juices', special:false},
+  {id:'j_guanabana', name:'Guanabana', category:'juices', special:false},
+  {id:'j_guava', name:'Guava', category:'juices', special:false},
+
+  /* drinks / mocktails */
+  {id:'d_virgin_mojito', name:'Virgin Mojito (Mocktail)', category:'drinks', special:false},
+  {id:'d_strawberry_daiquiri', name:'Strawberry Daiquiri (Mocktail)', category:'drinks', special:false},
+  {id:'d_cherry_daiquiri', name:'Cherry Daiquiri (Mocktail)', category:'drinks', special:false},
+  {id:'d_blueberry_mojito', name:'Blueberry Mojito (Mocktail)', category:'drinks', special:false},
+  {id:'d_pina_colada', name:'Pina Colada (Mocktail)', category:'drinks', special:false},
+  {id:'d_lychee_mojito', name:'Lychee Mojito (Mocktail)', category:'drinks', special:false},
+  {id:'d_rooh_afza', name:'Rooh Afza', category:'drinks', special:false},
+  {id:'d_lassi', name:'Lassi (Mango, Strawberry, Sweet)', category:'drinks', special:false},
+  {id:'d_nimbu_pani', name:'Nimbu Pani (Shikanji)', category:'drinks', special:false},
+
+  /* CANAPÉS (merged) */
+  {id:'c_pani_puri', name:'Pani Puri (Gol Gappa)', category:'canapes', special:false},
+  {id:'c_vegetable_samosa', name:'Vegetable Samosa', category:'canapes', special:false},
+  {id:'c_alu_tikki', name:'Alu Tikki', category:'canapes', special:false},
+  {id:'c_samosa_chat', name:'Samosa Chat', category:'canapes', special:true},
+  {id:'c_papri_chat', name:'Papri Chat', category:'canapes', special:false},
+  {id:'c_chilli_paneer', name:'Chilli Paneer', category:'canapes', special:false},
+  {id:'c_mogo_fries', name:'Mogo Fries', category:'canapes', special:false},
+  {id:'c_pakora', name:'Pakora', category:'canapes', special:false},
+  {id:'c_mozzarella_sticks', name:'Mozzarella Sticks', category:'canapes', special:true},
+  {id:'c_halloumi_fries', name:'Halloumi Fries', category:'canapes', special:true},
+  {id:'c_falafel', name:'Falafel', category:'canapes', special:true},
+  {id:'c_chicken_popcorn', name:'Chicken Popcorn', category:'canapes', special:false},
+  {id:'c_malai_tikka', name:'Malai Tikka', category:'canapes', special:false},
+  {id:'c_mini_burger', name:'Mini Burgers', category:'canapes', special:false},
+  {id:'c_chicken_pakora', name:'Chicken Pakora', category:'canapes', special:true},
+  {id:'c_mango_chilli_chicken', name:'Mango Chilli Chicken', category:'canapes', special:true},
+  {id:'c_spring_rolls', name:'Spring Rolls', category:'canapes', special:false},
+  {id:'c_tempura_prawns', name:'Tempura Prawns', category:'canapes', special:true},
+  {id:'c_tempura_chicken', name:'Tempura Chicken', category:'canapes', special:false},
+  {id:'c_murgh_tilwala', name:'Murgh Tilwala', category:'canapes', special:true},
+  {id:'c_mini_tacos', name:'Mini Tacos', category:'canapes', special:true},
+  {id:'c_meat_samosa', name:'Chicken / Lamb Samosa', category:'canapes', special:false},
+  {id:'c_masala_fish_chips', name:'Masala Fish & Chips', category:'canapes', special:false},
+
+  /* STARTERS (merged) */
+  {id:'s_garlic_chilli_mushrooms', name:'Garlic & Chilli Mushrooms', category:'starters', special:false},
+  {id:'s_mogo_chips', name:'Mogo Chips', category:'starters', special:false},
+  {id:'s_tempura_veg', name:'Tempura Vegetables', category:'starters', special:false},
+  {id:'s_vegetable_samosa_starter', name:'Vegetable Samosas', category:'starters', special:false},
+  {id:'s_paneer_samosa', name:'Paneer Samosas', category:'starters', special:true},
+  {id:'s_vegetable_spring_rolls', name:'Vegetable Spring Rolls', category:'starters', special:false},
+  {id:'s_corn_palak_pakoras', name:'Corn & Palak Pakoras', category:'starters', special:true},
+  {id:'s_khatte_aloo_ki_papdi', name:'Khatte Aloo Ki Papdi', category:'starters', special:false},
+  {id:'s_bharwa_aloo', name:'Bharwa Aloo', category:'starters', special:true},
+  {id:'s_chilli_paneer_starter', name:'Chilli Paneer', category:'starters', special:false},
+  {id:'s_mixed_pakora', name:'Mixed Pakora', category:'starters', special:false},
+  {id:'s_alu_papri_chaat', name:'Alu Papri Chaat', category:'starters', special:false},
+  {id:'s_dahi_bhallay', name:'Dahi Bhallay', category:'starters', special:false},
+  {id:'s_bhel_puri', name:'Bhel Puri', category:'starters', special:false},
+  {id:'s_chicken_tikka', name:'Chicken Tikka', category:'starters', special:false},
+  {id:'s_peri_peri_wings', name:'Peri Peri Chicken Wings', category:'starters', special:false},
+  {id:'s_seekh_kebab', name:'Seekh Kebab', category:'starters', special:false},
+  {id:'s_reshmi_kebab', name:'Reshmi Kebab', category:'starters', special:false},
+  {id:'s_chicken_chargah', name:'Chicken Chargah', category:'starters', special:false},
+  {id:'s_masala_fish', name:'Masala Fish', category:'starters', special:false},
+  {id:'s_afghani_lamb_tikka', name:'Afghani Lamb Tikka', category:'starters', special:true},
+  {id:'s_peshwari_chapli_kebabs', name:'Peshwari Chapli Kebabs', category:'starters', special:false},
+  {id:'s_lamb_ribs', name:'Lamb Ribs', category:'starters', special:true},
+  {id:'s_lamb_fillets', name:'Lamb Fillets', category:'starters', special:true},
+  {id:'s_tandoori_lamb_chops', name:'Tandoori Lamb Chops', category:'starters', special:true},
+  {id:'s_garlic_chilli_prawns', name:'Garlic & Chilli Prawns', category:'starters', special:true},
+  {id:'s_meat_samosa_starter', name:'Chicken / Lamb Samosa', category:'starters', special:false},
+
+  /* RICE & MAINS & DESSERTS unchanged */
+  {id:'r_jeera', name:'Jeera Rice', category:'rice', special:false},
+  {id:'r_plain', name:'Plain Rice', category:'rice', special:false},
+  {id:'r_matar_pilau', name:'Matar Pilau', category:'rice', special:false},
+  {id:'r_saffron', name:'Saffron Rice', category:'rice', special:false},
+  {id:'r_chicken_pilau', name:'Chicken Pilau', category:'rice', special:false},
+  {id:'r_lamb_pilau', name:'Lamb Pilau', category:'rice', special:false},
+  {id:'r_prawn_biryani', name:'Prawn Biryani*', category:'rice', special:true},
+  {id:'r_chicken_biryani', name:'Chicken Biryani', category:'rice', special:false},
+  {id:'r_lamb_biryani', name:'Lamb Biryani', category:'rice', special:true},
+  {id:'r_veg_biryani', name:'Vegetable Biryani', category:'rice', special:false},
+  {id:'r_egg_fried_rice', name:'Egg Fried Rice', category:'rice', special:false},
+
+  {id:'m_lamb_korma', name:'Lamb Korma', category:'mains_nonveg', special:false},
+  {id:'m_karahi_gosht', name:'Karahi Gosht', category:'mains_nonveg', special:false},
+  {id:'m_chilli_lamb', name:'Chilli Lamb', category:'mains_nonveg', special:false},
+  {id:'m_bhuna_gosht', name:'Bhuna Gosht', category:'mains_nonveg', special:false},
+  {id:'m_saag_gosht', name:'Saag Gosht', category:'mains_nonveg', special:false},
+  {id:'m_achari_gosht', name:'Achari Gosht', category:'mains_nonveg', special:false},
+  {id:'m_keema_mattar', name:'Keema Mattar', category:'mains_nonveg', special:false},
+  {id:'m_kofta_anda', name:'Kofta & Anda Curry', category:'mains_nonveg', special:false},
+  {id:'m_methi_lamb', name:'Methi Lamb', category:'mains_nonveg', special:false},
+  {id:'m_nargisi_kofta', name:'Nargisi Kofta*', category:'mains_nonveg', special:true},
+  {id:'m_keema', name:'Kofta Curry', category:'mains_nonveg', special:false},
+  {id:'m_lahori_nehari', name:'Lahori Nehari*', category:'mains_nonveg', special:true},
+  {id:'m_lamb_haleem', name:'Lamb Haleem', category:'mains_nonveg', special:false},
+  {id:'m_afghani_lamb_karahi', name:'Afghani Lamb Karahi', category:'mains_nonveg', special:false},
+  {id:'m_lamb_chops_masala', name:'Lamb Chops Masala*', category:'mains_nonveg', special:true},
+  {id:'m_karahi_chicken', name:'Karahi Chicken', category:'mains_nonveg', special:false},
+  {id:'m_achari_chicken', name:'Achari Chicken', category:'mains_nonveg', special:false},
+  {id:'m_jalfrezi_chicken', name:'Chicken Jalfrezi', category:'mains_nonveg', special:false},
+  {id:'m_tikka_karahi', name:'Chicken Tikka Karahi', category:'mains_nonveg', special:false},
+  {id:'m_methi_chicken', name:'Methi Chicken', category:'mains_nonveg', special:false},
+  {id:'m_palak_chicken', name:'Palak Chicken', category:'mains_nonveg', special:false},
+  {id:'m_chicken_keema', name:'Chicken Keema', category:'mains_nonveg', special:false},
+  {id:'m_makhni_chicken', name:'Makhni Chicken*', category:'mains_nonveg', special:true},
+  {id:'m_chicken_korma', name:'Chicken Korma', category:'mains_nonveg', special:false},
+  {id:'m_shashlik', name:'Chicken Shashlik', category:'mains_nonveg', special:false},
+  {id:'m_chilli_chicken', name:'Chilli Chicken', category:'mains_nonveg', special:false},
+  {id:'m_manpasand_kofta', name:'Manpasand Kofta', category:'mains_nonveg', special:false},
+  {id:'m_chicken_haleem', name:'Chicken Haleem', category:'mains_nonveg', special:false},
+  {id:'m_chicken_ginger', name:'Chicken Ginger', category:'mains_nonveg', special:false},
+  {id:'m_prawn_masala', name:'Prawn Masala*', category:'mains_nonveg', special:true},
+  {id:'m_makhni_prawns', name:'Makhni Prawns*', category:'mains_nonveg', special:true},
+  {id:'m_fish_karahi', name:'Fish Karahi*', category:'mains_nonveg', special:true},
+
+  {id:'v_achari_aloo', name:'Achari Aloo', category:'mains_veg', special:false},
+  {id:'v_aloo_chana', name:'Aloo Chana', category:'mains_veg', special:false},
+  {id:'v_aloo_gobi', name:'Aloo Gobi', category:'mains_veg', special:false},
+  {id:'v_aloo_mattar', name:'Aloo Mattar', category:'mains_veg', special:false},
+  {id:'v_dum_aloo', name:'Dum Aloo', category:'mains_veg', special:false},
+  {id:'v_aloo_palak', name:'Aloo Palak', category:'mains_veg', special:false},
+  {id:'v_bhaingan_bhartha', name:'Bhaingan Ka Bhartha', category:'mains_veg', special:false},
+  {id:'v_palak_paneer', name:'Palak Paneer', category:'mains_veg', special:false},
+  {id:'v_mattar_paneer', name:'Mutter Paneer', category:'mains_veg', special:false},
+  {id:'v_bharwa_potato', name:'Bharwa Aloo (Stuffed)', category:'mains_veg', special:false},
+  {id:'v_malai_kofta', name:'Malai Kofta', category:'mains_veg', special:false},
+  {id:'v_veg_jalfrezi', name:'Mixed Vegetable Jalfrezi', category:'mains_veg', special:false},
+  {id:'v_raajma', name:'Rajmah', category:'mains_veg', special:false},
+  {id:'v_kadhi_pakoras', name:'Kadhi Pakoras', category:'mains_veg', special:false},
+  {id:'v_karahi_mushroom', name:'Karahi Mushroom', category:'mains_veg', special:false},
+
+  {id:'dess_gajar', name:'Gajjar Ka Halwa', category:'desserts', special:false},
+  {id:'dess_gulab', name:'Gulab Jamun', category:'desserts', special:false},
+  {id:'dess_suji', name:'Suji Ka Halwa', category:'desserts', special:false},
+  {id:'dess_rasgulla', name:'Rasgulla', category:'desserts', special:false},
+  {id:'dess_rasmali', name:'Ras Malai', category:'desserts', special:false},
+  {id:'dess_mutanjan', name:'Mutanjan', category:'desserts', special:false},
+  {id:'dess_bakhlawa', name:'Bakhlawa', category:'desserts', special:false},
+  {id:'dess_barfi', name:'Barfi', category:'desserts', special:false},
+  {id:'dess_jalebi', name:'Jalebi', category:'desserts', special:false},
+  {id:'dess_kheer', name:'Kheer / Firni', category:'desserts', special:false},
+  {id:'dess_shrikhand', name:'Shrikhand', category:'desserts', special:false},
+  {id:'dess_icecream', name:'Selection of Ice Cream', category:'desserts', special:false},
+  {id:'dess_malai_kulfi', name:'Malai Kulfi', category:'desserts', special:false},
+  {id:'dess_rose_kulfi', name:'Rose Kulfi*', category:'desserts', special:true},
+  {id:'dess_saffron_kulfi', name:'Saffron Kulfi*', category:'desserts', special:true},
+  {id:'dess_pistachio_kulfi', name:'Pistachio Kulfi*', category:'desserts', special:true},
+
+  /* SELECTOR / BREAKFAST unchanged */
+  {id:'sel_dawat_trio', name:'Dawat Trio Platter', category:'selector', special:false},
+  {id:'sel_cheesecake', name:'Selection of Cheesecake', category:'selector', special:false},
+  {id:'sel_macarons', name:'Selection of Macarons', category:'selector', special:false},
+  {id:'break_punjabi_pakoras', name:'Punjabi Style Pakoras (Breakfast)', category:'breakfast', special:false},
+  {id:'break_deluxe', name:'Deluxe Breakfast Menu (assorted)', category:'breakfast', special:false},
+  {id:'mehandi_deluxe', name:'Deluxe Mehndi Menu', category:'breakfast', special:false},
+
+  /* breads (new) */
+  {id:'b_tandoori_naan', name:'Tandoori Naan', category:'breads', special:false},
+  {id:'b_methi_naan', name:'Methi Naan', category:'breads', special:true},
+  {id:'b_garlic_naan', name:'Garlic Naan', category:'breads', special:true},
+  {id:'b_garlic_chilli_naan', name:'Garlic & Chilli Naan', category:'breads', special:true},
+  {id:'b_peshwari_naan', name:'Peshwari Naan', category:'breads', special:true},
+  {id:'b_roghni_naans', name:'Roghni Naans', category:'breads', special:true},
+  {id:'b_romali_roti', name:'Romali Roti', category:'breads', special:false},
+  {id:'b_lachedar_parathas', name:'Lachedar Parathas', category:'breads', special:true},
+  {id:'b_tandoori_parathas', name:'Tandoori Parathas', category:'breads', special:true},
+  {id:'b_bhaturras', name:'Bhaturras', category:'breads', special:true},
+  {id:'b_puris', name:'Puris', category:'breads', special:false},
+  {id:'b_makki_roti', name:'Makki Ki Roti', category:'breads', special:true}
+];
+
+/* ================= MENU RENDERING & SELECTION ENFORCEMENT ================= */
+const menuContent = document.getElementById("menuContent");
+const selCountEl = document.getElementById("selCount");
+window.SELECTED_MENU_ITEMS = [];
+
+function getLimits(){
+  return {
+    canapes: Number(nCanapes.value) || 0,
+    starters: Number(nStarters.value) || 0,
+    mains: Number(nMains.value) || 0,
+    desserts: Number(nDesserts.value) || 0
+  };
+}
+function countSelectedByCategory(cat){
+  return window.SELECTED_MENU_ITEMS.filter(i => i.category === cat).length;
+}
+function countSelectedMainsTotal(){
+  return window.SELECTED_MENU_ITEMS.filter(i => ['mains_nonveg','mains_veg','rice'].includes(i.category)).length;
+}
+
+function enforceSelectionLimits(){
+  const limits = getLimits();
+  const counts = { canapes:0, starters:0, desserts:0, mains:0, breads:0 };
+  const kept = [];
+  const removed = [];
+
+  for(const item of window.SELECTED_MENU_ITEMS){
+    const cat = item.category;
+    if(cat === 'canapes'){
+      if(counts.canapes < limits.canapes){ kept.push(item); counts.canapes++; } else removed.push(item);
+    } else if(cat === 'starters'){
+      if(counts.starters < limits.starters){ kept.push(item); counts.starters++; } else removed.push(item);
+    } else if(cat === 'desserts'){
+      if(counts.desserts < limits.desserts){ kept.push(item); counts.desserts++; } else removed.push(item);
+    } else if(['mains_nonveg','mains_veg','rice'].includes(cat)){
+      if(counts.mains < limits.mains){ kept.push(item); counts.mains++; } else removed.push(item);
+    } else if(cat === 'breads'){
+      if(counts.breads < 2){ kept.push(item); counts.breads++; } else removed.push(item);
+    } else {
+      kept.push(item);
+    }
+  }
+
+  window.SELECTED_MENU_ITEMS = kept;
+  selCountEl.textContent = window.SELECTED_MENU_ITEMS.length;
+  populateMenuItems(currentFilter);
+  return removed.length;
+}
+
+/* Render menu items into modal */
+let currentFilter = 'all';
+function populateMenuItems(filter = 'all'){
+  currentFilter = filter;
+  menuContent.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'menu-grid';
+  const items = (filter === 'all') ? MENU : MENU.filter(i => i.category === filter);
+
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    card.dataset.id = item.id;
+    card.dataset.cat = item.category;
+    const h = document.createElement('h4');
+    h.textContent = item.name;
+    card.appendChild(h);
+    const p = document.createElement('p');
+    p.textContent = item.category.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+    card.appendChild(p);
+    if(item.special){
+      const sp = document.createElement('div');
+      sp.className = 'price';
+      sp.textContent = 'Special';
+      card.appendChild(sp);
+    }
+    if(window.SELECTED_MENU_ITEMS.find(si => si.id === item.id)){
+      card.classList.add('selected');
+      const badge = document.createElement('div');
+      badge.className = 'selBadge';
+      badge.textContent = 'Selected';
+      card.appendChild(badge);
+    }
+
+    card.addEventListener('click', () => {
+      const isSelected = window.SELECTED_MENU_ITEMS.find(si => si.id === item.id);
+      if(isSelected){
+        window.SELECTED_MENU_ITEMS = window.SELECTED_MENU_ITEMS.filter(si => si.id !== item.id);
+        populateMenuItems(currentFilter);
+        selCountEl.textContent = window.SELECTED_MENU_ITEMS.length;
+        return;
+      }
+
+      const limits = getLimits();
+      if(item.category === 'canapes'){
+        if(countSelectedByCategory('canapes') >= limits.canapes){
+          alert(`Canapés limit reached (${limits.canapes} unique items). Remove an existing one to add another.`);
+          return;
+        }
+      } else if(item.category === 'starters'){
+        if(countSelectedByCategory('starters') >= limits.starters){
+          alert(`Starters limit reached (${limits.starters} unique items). Remove an existing one to add another.`);
+          return;
+        }
+      } else if(item.category === 'desserts'){
+        if(countSelectedByCategory('desserts') >= limits.desserts){
+          alert(`Desserts limit reached (${limits.desserts} unique items). Remove an existing one to add another.`);
+          return;
+        }
+      } else if(['mains_nonveg','mains_veg','rice'].includes(item.category)){
+        if(countSelectedMainsTotal() >= limits.mains){
+          alert(`Mains limit reached (${limits.mains} unique items across mains & rice). Remove an existing main/rice to add another.`);
+          return;
+        }
+      } else if(item.category === 'breads'){
+        if(countSelectedByCategory('breads') >= 2){
+          alert(`Breads limit reached (max 2 choices). Remove an existing bread to add another.`);
+          return;
+        }
+      }
+      window.SELECTED_MENU_ITEMS.push(item);
+      populateMenuItems(currentFilter);
+      selCountEl.textContent = window.SELECTED_MENU_ITEMS.length;
+    });
+
+    grid.appendChild(card);
+  });
+
+  menuContent.appendChild(grid);
+}
+
+/* Wire category buttons */
+document.querySelectorAll('.menu-panel button[data-cat]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const cat = btn.dataset.cat;
+    document.querySelectorAll('.menu-panel button[data-cat]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    populateMenuItems(cat === 'all' ? 'all' : cat);
+  });
+});
+
+/* Open/close modal & apply/clear */
+const menuModal = document.getElementById("menuModal");
+function openMenu() {
+  if (!menuModal) return;
+  populateMenuItems('all');
+  selCountEl.textContent = window.SELECTED_MENU_ITEMS.length;
+  menuModal.style.display = "flex";
+}
+function closeMenuModal() {
+  if (!menuModal) return;
+  menuModal.style.display = "none";
+}
+["openMenuBtn", "openMenuBtnInline", "openMenuBtn2"].forEach(id => {
+  const btn = document.getElementById(id);
+  if (btn) btn.addEventListener("click", openMenu);
+});
+const closeMenuBtn = document.getElementById("closeMenu");
+if (closeMenuBtn) closeMenuBtn.addEventListener("click", closeMenuModal);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenuModal(); });
+document.getElementById('clearSelections').addEventListener('click', () => { window.SELECTED_MENU_ITEMS = []; selCountEl.textContent = '0'; populateMenuItems(currentFilter); });
+document.getElementById('applySelections').addEventListener('click', () => { closeMenuModal(); computeQuote(); });
+
+/* Re-enforce limits if per-category inputs change */
+[nCanapes,nStarters,nMains,nDesserts].forEach(el => {
+  el.addEventListener('change', () => {
+    const removed = enforceSelectionLimits();
+    if(removed>0) alert(`${removed} previously selected item(s) were removed to fit the new limits.`);
+    computeQuote();
+  });
+});
+
+/* ================= CALCULATION (with breads handling + buffet discount) ================= */
+function computeQuote(){
+  const guests = Number(guestsEl.value)||1;
+  const pkg = packageSelect.value || 'Bronze';
+  let base = PRICING.packages[pkg]||0;
+
+  if(["Bronze","Silver","Gold","Diamond","Platinum"].includes(pkg) && guests<100){
+    base += PRICING.under100Surcharge;
+  }
+
+  let adjustmentsPerHead=0;
+  if(!lockPackage.checked && PACKAGE_DEFAULTS[pkg]){
+    const d=PACKAGE_DEFAULTS[pkg];
+    adjustmentsPerHead += (
+      Math.abs(Number(nCanapes.value)-d.canapes)+
+      Math.abs(Number(nStarters.value)-d.starters)+
+      Math.abs(Number(nMains.value)-d.mains)+
+      Math.abs(Number(nDesserts.value)-d.desserts)
+    )*PRICING.changeAddSubPerHead;
+  }
+
+  // Add-ons (absolute totals)
+  const addonVal1 = Number(document.getElementById('addonVal1').value)||0;
+  const addonVal2 = Number(document.getElementById('addonVal2').value)||0;
+  const addonVal3 = Number(document.getElementById('addonVal3').value)||0;
+  const addonsTotal = addonVal1 + addonVal2 + addonVal3;
+
+  // Special items surcharge: each special selected adds X per head (includes bread specials)
+  const specialCount = window.SELECTED_MENU_ITEMS.filter(i => i.special).length;
+  const specialPerHead = specialCount * PRICING.specialItemPerHead;
+
+  // Drinks surcharge: £1/head for every selected juice/mocktail type
+  const drinkCount = window.SELECTED_MENU_ITEMS.filter(i => ['juices','drinks'].includes(i.category)).length;
+  const drinksPerHead = drinkCount * PRICING.drinkSurchargePerSelectedDrinkPerHead;
+  const drinksTotal = drinksPerHead * guests;
+
+  // Breads handling:
+  const breadItems = window.SELECTED_MENU_ITEMS.filter(i => i.category === 'breads');
+  const breadCount = breadItems.length;
+  // One bread included free; any extra breads beyond the first add changeAddSubPerHead per head
+  const extraBreadChoices = Math.max(0, breadCount - 1);
+  const extraBreadPerHead = extraBreadChoices * PRICING.changeAddSubPerHead;
+  const breadExtraTotal = extraBreadPerHead * guests;
+
+  // Service-based buffet discount per head (NEW)
+  const service = document.querySelector('input[name="service"]:checked')?.value || 'table';
+  const buffetPerHead = (service === 'buffet') ? PRICING.buffetDiscountPerHead : 0;
+  const buffetTotal = buffetPerHead * guests;
+
+  // Per-head total before clamping (base + adjustments + specials + drinks - buffet discount + extra bread per head)
+  let perHead = base + adjustmentsPerHead + specialPerHead + drinksPerHead - buffetPerHead + extraBreadPerHead;
+  if(perHead < 0) perHead = 0; // clamp to avoid negative per-head
+
+  const foodTotal = perHead * guests;
+
+  // Pre-discount grand total (no waiters)
+  const preDiscountGrand = foodTotal + addonsTotal;
+
+  // Discount percentage: allow 0 (no discount) or enforce min 5% if >0; max 50%
+  let discountPct = Number(discountPctEl.value) || 0;
+  if(discountPct > 0 && discountPct < 5) discountPct = 5;
+  if(discountPct > 50) discountPct = 50;
+  discountPctEl.value = discountPct;
+
+  const discountAmount = preDiscountGrand * (discountPct/100);
+  const grandTotal = preDiscountGrand - discountAmount;
+
+  // Update summary display
+  const cust = (custName.value || '').trim();
+  document.getElementById("sCustomer").textContent = cust ? `${cust}` : '-';
+  document.getElementById("sDate").textContent = (custDate.value || '-') ;
+  document.getElementById("sGuests").textContent = guests;
+  document.getElementById("sService").textContent = service;
+  document.getElementById("sPackage").textContent = pkg;
+  document.getElementById("sPerHead").textContent = `£${fmt(perHead)}`;
+  document.getElementById("sDrinks").textContent = `£${fmt(drinksTotal)}`;
+  document.getElementById("sBread").textContent = breadExtraTotal > 0 ? `£${fmt(breadExtraTotal)}` : '£0.00';
+  document.getElementById("sBuffet").textContent = buffetTotal>0 ? `-£${fmt(buffetTotal)}` : '£0.00';
+  document.getElementById("sAddons").textContent = `£${fmt(addonsTotal)}`;
+  document.getElementById("sAdjust").textContent = `£${fmt((adjustmentsPerHead + specialPerHead) * guests)}`;
+  document.getElementById("sDiscount").textContent = `${discountPct}%`;
+  document.getElementById("sTotal").textContent = `£${fmt(grandTotal)}`;
+
+  return {
+    guests, service, pkg, perHead, drinksPerHead, drinksTotal, addonsTotal,
+    adjustmentsPerHead, specialPerHead, grandTotal, foodTotal, preDiscountGrand, discountPct, discountAmount,
+    buffetPerHead, buffetTotal, breadCount, extraBreadPerHead, breadExtraTotal
+  };
+}
+
+/* ================= COPY (bill & full) ================= */
+document.getElementById("copyBill").onclick = () => {
+  const t = document.getElementById("sTotal").textContent;
+  navigator.clipboard.writeText(t).then(()=> alert("Total copied to clipboard")).catch(()=> alert("Copy failed"));
+};
+
+document.getElementById("copyFull").onclick = async () => {
+  const b = computeQuote(); // ensure latest
+  const out = buildPlainTextQuote(b);
+  try {
+    await navigator.clipboard.writeText(out);
+    alert('Full quote copied to clipboard');
+  } catch(e){
+    const win = window.open('', '_blank', 'noopener');
+    if(win){
+      win.document.write('<pre style="white-space:pre-wrap; font-family:monospace;">' + out.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre>');
+      win.document.title = 'Full Quote - Copy';
+    } else {
+      alert('Unable to copy automatically — your browser blocked clipboard. A new tab has been opened with the quote (or copy manually).');
+    }
+  }
+};
+
+function buildPlainTextQuote(b){
+  const lines = [];
+  lines.push(`Dawat:The Art of Cooking — Catering Quote`);
+  lines.push('');
+  lines.push('Customer:');
+  lines.push(`  Name: ${custName.value || '-'}`);
+  lines.push(`  Email: ${custEmail.value || '-'}`);
+  lines.push(`  Phone: ${custPhone.value || '-'}`);
+  lines.push(`  Event date: ${custDate.value || '-'}`);
+  lines.push(`  Address: ${custAddress.value || '-'}`);
+  lines.push('');
+  lines.push(`Guests: ${b.guests}`);
+  lines.push(`Service: ${b.service}`);
+  lines.push(`Package: ${b.pkg}`);
+  lines.push('');
+  lines.push(`Per-head breakdown:`);
+  lines.push(`  Base package: £${fmt(PRICING.packages[b.pkg] || 0)} per head`);
+  if(["Bronze","Silver","Gold","Diamond","Platinum"].includes(b.pkg) && b.guests < 100){
+    lines.push(`  Under-100 surcharge: £${fmt(PRICING.under100Surcharge)} per head (applied)`);
+  }
+  lines.push(`  Custom adjustments: £${fmt(b.adjustmentsPerHead)} per head`);
+  lines.push(`  Special items surcharge: £${fmt(b.specialPerHead)} per head`);
+  lines.push(`  Drinks surcharge: £${fmt(b.drinksPerHead)} per head`);
+  if(b.buffetPerHead > 0){
+    lines.push(`  Buffet discount: -£${fmt(b.buffetPerHead)} per head (applied)`);
+  }
+  if(b.extraBreadPerHead > 0){
+    lines.push(`  Additional bread choices: £${fmt(b.extraBreadPerHead)} per head (applied for ${b.breadCount} breads)`);
+  }
+  lines.push(`  Total per head: £${fmt(b.perHead)}`);
+  lines.push('');
+  lines.push('Totals:');
+  lines.push(`  Food total: £${fmt(b.foodTotal)}`);
+  lines.push(`  Add-ons (total): £${fmt(b.addonsTotal)}`);
+  lines.push(`  Subtotal: £${fmt(b.preDiscountGrand)}`);
+  lines.push(`  Discount: ${b.discountPct}% → -£${fmt(b.discountAmount)}`);
+  lines.push(`  Grand total: £${fmt(b.grandTotal)}`);
+  lines.push('');
+
+  if(b.service === 'table'){
+    lines.push('Table service — Event Management & Staffing:');
+    lines.push('  We will provide complete Event Management inclusive of onsite Event Managers, Waiters For Service, Kitchen Chefs and Crew. We will provide the Crockery, Cutlery, Glassware, Table Linens and Napkins.');
+    lines.push('  Our designated staff will be able to serve and service your Event respectively throughout the day to the highest of standards. This includes setting up, winding down and ensuring complete execution of the Event meticulously whereby we take care of everything from Start to Finish.');
+    lines.push('');
+  } else {
+    lines.push('Buffet service — Event Management & Staffing:');
+    lines.push('  For buffet service we provide Event Management inclusive of onsite Event Managers, Buffet Attendants and Kitchen Crew. We will supply Crockery, Cutlery, Glassware where required, plus all necessary buffet equipment and replenishment service.');
+    lines.push('  Our team will ensure dishes are replenished, temperature-controlled and presented attractively throughout service, handling setup and breakdown to guarantee a smooth buffet experience.');
+    lines.push('');
+  }
+
+  if(window.SELECTED_MENU_ITEMS.length){
+    lines.push('Selected menu items:');
+    const byCat = {};
+    window.SELECTED_MENU_ITEMS.forEach(it => {
+      if(!byCat[it.category]) byCat[it.category] = [];
+      byCat[it.category].push(it);
+    });
+    const catOrder = ['canapes','starters','mains_nonveg','mains_veg','rice','desserts','breads','juices','drinks','selector','breakfast'];
+    catOrder.forEach(cat => {
+      if(byCat[cat] && byCat[cat].length){
+        lines.push(`  ${cat.replace(/_/g,' ')}:`);
+        byCat[cat].forEach(it => lines.push(`    - ${it.name}${it.special? ' *special*' : ''}`));
+      }
+    });
+    Object.keys(byCat).forEach(cat => {
+      if(!catOrder.includes(cat)){
+        lines.push(`  ${cat}:`);
+        byCat[cat].forEach(it => lines.push(`    - ${it.name}${it.special? ' *special*' : ''}`));
+      }
+    });
+    lines.push('');
+  }
+
+  // Add-ons detail
+  const addonLines = [];
+  const al1 = (document.getElementById('addonLabel1').value || '').trim();
+  const al2 = (document.getElementById('addonLabel2').value || '').trim();
+  const al3 = (document.getElementById('addonLabel3').value || '').trim();
+  const av1 = Number(document.getElementById('addonVal1').value)||0;
+  const av2 = Number(document.getElementById('addonVal2').value)||0;
+  const av3 = Number(document.getElementById('addonVal3').value)||0;
+  if(al1) addonLines.push(`  ${al1}: £${fmt(av1)} total`);
+  if(al2) addonLines.push(`  ${al2}: £${fmt(av2)} total`);
+  if(al3) addonLines.push(`  ${al3}: £${fmt(av3)} total`);
+  if(addonLines.length){
+    lines.push('Add-ons:');
+    lines.push(...addonLines);
+    lines.push('');
+  }
+
+  lines.push('Notes:');
+  lines.push('  - Each selected juice/mocktail adds £1 per guest to the per-head price.');
+  lines.push('  - Each selected *special* item adds £2 per guest to the per-head price.');
+  lines.push('  - One bread choice is included free per order. If the selected bread is marked *special* its special surcharge still applies.');
+  lines.push('  - You may choose up to 2 breads; any additional bread choice beyond the first adds an extra charge per guest.');
+  if(b.buffetPerHead > 0) lines.push(`  - Buffet discount of £${fmt(b.buffetPerHead)} per guest applied because service = buffet.`);
+  lines.push('');
+  lines.push(`Generated: ${new Date().toLocaleString()}`);
+  return lines.join('\n');
+}
+
+/* ================= PDF PREVIEW + DOWNLOAD ================= */
+function buildHtmlQuote(b){
+  // returns a full HTML string styled for A4 output
+  const cust = (custName.value || '-');
+  const address = (custAddress.value || '-').replace(/\n/g,'<br>');
+  const header = `
+    <div style="font-family:Arial,Helvetica,sans-serif;color:#222;">
+      <h1 style="color:#0b4fa8;margin:0 0 6px">Dawat — The Art of Cooking</h1>
+      <p style="margin:0 0 8px">Catering Quote</p>
+      <hr style="border:none;border-top:1px solid #eee;margin:8px 0 16px"/>
+    </div>`;
+
+  const custBlock = `
+    <div style="font-size:13px;margin-bottom:12px;">
+      <strong>Customer</strong><br/>
+      Name: ${escapeHtml(cust)}<br/>
+      Email: ${escapeHtml(custEmail.value || '-')} · Phone: ${escapeHtml(custPhone.value || '-')}<br/>
+      Event date: ${escapeHtml(custDate.value || '-')}<br/>
+      Address: ${address}
+    </div>`;
+
+  const bPerHead = b.buffetPerHead || 0;
+  const perHeadBlock = `
+    <div style="font-size:13px;margin-bottom:12px;">
+      <strong>Guests:</strong> ${b.guests} · <strong>Service:</strong> ${escapeHtml(b.service)} · <strong>Package:</strong> ${escapeHtml(b.pkg)}<br/><br/>
+      <strong>Per-head breakdown</strong><br/>
+      Base package: £${fmt(PRICING.packages[b.pkg] || 0)} / head<br/>
+      ${(["Bronze","Silver","Gold","Diamond","Platinum"].includes(b.pkg) && b.guests < 100) ? `Under-100 surcharge: £${fmt(PRICING.under100Surcharge)} / head<br/>` : ''}
+      Custom adjustments: £${fmt(b.adjustmentsPerHead)} / head<br/>
+      Special items surcharge: £${fmt(b.specialPerHead)} / head<br/>
+      Drinks surcharge: £${fmt(b.drinksPerHead)} / head<br/>
+      ${bPerHead>0 ? `Buffet discount: -£${fmt(bPerHead)} / head<br/>` : ''}
+      Additional bread choices: £${fmt(b.extraBreadPerHead)} / head (for ${b.breadCount || 0} breads)<br/>
+      <strong>Total per head: £${fmt(b.perHead)}</strong>
+    </div>`;
+
+  const totalsBlock = `
+    <div style="font-size:13px;margin-bottom:12px;">
+      <strong>Totals</strong><br/>
+      Food total: £${fmt(b.foodTotal)}<br/>
+      Add-ons (total): £${fmt(b.addonsTotal)}<br/>
+      Subtotal: £${fmt(b.preDiscountGrand)}<br/>
+      Discount: ${b.discountPct}% → -£${fmt(b.discountAmount)}<br/>
+      <strong>Grand total: £${fmt(b.grandTotal)}</strong>
+    </div>`;
+
+  let serviceStatement = '';
+  if(b.service === 'table'){
+    serviceStatement = `
+      <div style="font-size:12px;margin-bottom:12px;">
+        <strong>Table service — Event Management & Staffing</strong><br/>
+        We will provide complete Event Management inclusive of onsite Event Managers, Waiters For Service, Kitchen Chefs and Crew. We will provide the Crockery, Cutlery, Glassware, Table Linens and Napkins.<br/>
+        Our designated staff will be able to serve and service your Event respectively throughout the day to the highest of standards. This includes setting up, winding down and ensuring complete execution of the Event meticulously whereby we take care of everything from Start to Finish.
+      </div>`;
+  } else {
+    serviceStatement = `
+      <div style="font-size:12px;margin-bottom:12px;">
+        <strong>Buffet service — Event Management & Staffing</strong><br/>
+        For buffet service we provide Event Management inclusive of onsite Event Managers, Buffet Attendants and Kitchen Crew. We will supply Crockery, Cutlery, Glassware where required, plus all necessary buffet equipment and replenishment service.<br/>
+        Our team will ensure dishes are replenished, temperature-controlled and presented attractively throughout service, handling setup and breakdown to guarantee a smooth buffet experience.
+      </div>`;
+  }
+
+  // selected items listing
+  let itemsHtml = '';
+  if(window.SELECTED_MENU_ITEMS.length){
+    const byCat = {};
+    window.SELECTED_MENU_ITEMS.forEach(it => {
+      if(!byCat[it.category]) byCat[it.category] = [];
+      byCat[it.category].push(it);
+    });
+    const catOrder = ['canapes','starters','mains_nonveg','mains_veg','rice','desserts','breads','juices','drinks','selector','breakfast'];
+    itemsHtml += '<div style="font-size:13px;margin-bottom:12px;"><strong>Selected menu items</strong><br/>';
+    catOrder.forEach(cat => {
+      if(byCat[cat] && byCat[cat].length){
+        itemsHtml += `<div style="margin-top:6px;"><em>${cat.replace(/_/g,' ')}</em><ul style="margin:6px 0 0 18px;padding:0">`;
+        byCat[cat].forEach(it => itemsHtml += `<li>${escapeHtml(it.name)}${it.special? ' *special*' : ''}</li>`);
+        itemsHtml += '</ul></div>';
+      }
+    });
+    itemsHtml += '</div>';
+  }
+
+  const addonLines = [];
+  const al1 = (document.getElementById('addonLabel1').value || '').trim();
+  const al2 = (document.getElementById('addonLabel2').value || '').trim();
+  const al3 = (document.getElementById('addonLabel3').value || '').trim();
+  const av1 = Number(document.getElementById('addonVal1').value)||0;
+  const av2 = Number(document.getElementById('addonVal2').value)||0;
+  const av3 = Number(document.getElementById('addonVal3').value)||0;
+  if(al1) addonLines.push(`<div>${escapeHtml(al1)}: £${fmt(av1)} total</div>`);
+  if(al2) addonLines.push(`<div>${escapeHtml(al2)}: £${fmt(av2)} total</div>`);
+  if(al3) addonLines.push(`<div>${escapeHtml(al3)}: £${fmt(av3)} total</div>`);
+  const addonsHtml = addonLines.length ? `<div style="font-size:13px;margin-bottom:12px;"><strong>Add-ons</strong>${addonLines.join('')}</div>` : '';
+
+  const notes = `
+    <div style="font-size:11px;color:#555;margin-top:10px;">
+      <strong>Notes:</strong>
+      <ul>
+        <li>Each selected juice/mocktail adds £1 per guest to the per-head price.</li>
+        <li>Each selected <em>*special*</em> item adds £${fmt(PRICING.specialItemPerHead)} per guest to the per-head price.</li>
+        <li>One bread choice is included free per order. If the selected bread is marked <em>*special*</em> its special surcharge still applies.</li>
+        <li>You may choose up to 2 breads; any additional bread choice beyond the first adds an extra charge per guest.</li>
+        ${b.buffetPerHead>0 ? `<li>Buffet discount of £${fmt(b.buffetPerHead)} per guest applied because service = buffet.</li>` : ''}
+      </ul>
+    </div>`;
+
+  const footer = `<div style="font-size:11px;color:#777;margin-top:18px">Generated: ${new Date().toLocaleString()}</div>`;
+
+  return `<div style="padding:18px;line-height:1.3">${header}${custBlock}${perHeadBlock}${totalsBlock}${serviceStatement}${itemsHtml}${addonsHtml}${notes}${footer}</div>`;
+}
+
+function escapeHtml(s){
+  if(!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
+}
+
+function renderPdfPreview(){
+  const b = computeQuote();
+  const html = buildHtmlQuote(b);
+  pdfPreviewEl.innerHTML = html;
+}
+
+/* Download PDF using jsPDF if available, else fallback to new tab + print */
+async function downloadPdf(){
+  const b = computeQuote();
+  const html = buildHtmlQuote(b);
+
+  // try jsPDF html rendering
+  try {
+    if(window.jspdf && window.jspdf.jsPDF){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        unit: 'pt',
+        format: 'a4',
+        compress: true
+      });
+      // create a temporary container for the HTML
+      const temp = document.createElement('div');
+      temp.style.width = '794px'; // approx A4 width in pts at 72dpi ~ 595pt; set broader for html2canvas; we use pts units and margin handled by jsPDF
+      temp.innerHTML = html;
+      document.body.appendChild(temp);
+      await doc.html(temp, {
+        callback: function (docArg) {
+          docArg.save('Dawat-Quote.pdf');
+          temp.remove();
+        },
+        x: 20,
+        y: 20,
+        html2canvas: { scale: 1.5 }
+      });
+      return;
+    }
+    throw new Error('jsPDF not available');
+  } catch (err){
+    // fallback: open printable HTML in a new window (user can Save as PDF)
+    const w = window.open('', '_blank', 'noopener');
+    if(!w){
+      alert('Unable to open a new tab for PDF preview. Please allow popups or use the browser print dialog.');
+      return;
+    }
+    const css = `<style>
+      body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:28px}
+      h1{color:#0b4fa8}
+      .section{margin-bottom:12px}
+      </style>`;
+    w.document.write('<!doctype html><html><head><title>Quote — Print / Save as PDF</title>'+css+'</head><body>');
+    w.document.write(html);
+    w.document.write('<script>window.onload = function(){ window.print(); }<\/script>');
+    w.document.write('</body></html>');
+    w.document.close();
+  }
+}
+
+/* Wire download button & open-in-new-tab */
+document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+  downloadPdf();
+});
+document.getElementById('openPdfInNewTab').addEventListener('click', () => {
+  const b = computeQuote();
+  const html = buildHtmlQuote(b);
+  const w = window.open('', '_blank', 'noopener');
+  if(!w){ alert('Unable to open new tab — browser blocked popups.'); return; }
+  const css = `<style>body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:28px}h1{color:#0b4fa8}</style>`;
+  w.document.write('<!doctype html><html><head><title>Quote — Preview</title>'+css+'</head><body>');
+  w.document.write(html);
+  w.document.write('</body></html>');
+  w.document.close();
+});
+
+/* ================= RESET BTN (updated) ================= */
+function setActiveCategoryButton(cat = 'all'){
+  const btns = document.querySelectorAll('.menu-panel button[data-cat]');
+  btns.forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+}
+document.getElementById('resetBtn').addEventListener('click', () => {
+  // customer
+  custName.value = '';
+  custEmail.value = '';
+  custPhone.value = '';
+  custAddress.value = '';
+  custDate.value = '';
+
+  // guests & service
+  guestsEl.value = 120;
+  document.querySelector('input[name="service"][value="table"]').checked = true;
+
+  // package grid & lock
+  packageSelect.value = 'Bronze';
+  lockPackage.checked = true;
+  applyPackageDefaults('Bronze');
+  updateLock();
+  renderPackagesGrid();
+
+  // per-category inputs
+  nCanapes.value = PACKAGE_DEFAULTS['Bronze'].canapes;
+  nStarters.value = PACKAGE_DEFAULTS['Bronze'].starters;
+  nMains.value = PACKAGE_DEFAULTS['Bronze'].mains;
+  nDesserts.value = PACKAGE_DEFAULTS['Bronze'].desserts;
+  [nCanapes,nStarters,nMains,nDesserts].forEach(inp => inp.dispatchEvent(new Event('change', { bubbles: true })));
+
+  // menu selections (including breads)
+  window.SELECTED_MENU_ITEMS = [];
+  selCountEl.textContent = '0';
+  populateMenuItems('all');
+  setActiveCategoryButton('all');
+
+  // addons & discount
+  document.getElementById('addonLabel1').value = '';
+  document.getElementById('addonLabel2').value = '';
+  document.getElementById('addonLabel3').value = '';
+  document.getElementById('addonVal1').value = '';
+  document.getElementById('addonVal2').value = '';
+  document.getElementById('addonVal3').value = '';
+  discountPctEl.value = 0;
+
+  computeQuote();
+});
+
+/* ================= INIT ================= */
+renderPackagesGrid();
+applyPackageDefaults("Bronze");
+updateLock();
+populateMenuItems('all');
+setActiveCategoryButton('all');
+computeQuote();
+
+/* Recompute whenever service radio changes so buffet discount updates live */
+document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', computeQuote));
+</script>
+</body>
+</html>
