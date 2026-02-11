@@ -3,66 +3,154 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dawat — Catering Quote & Menu (PDF Export)</title>
+<title>Dawat — Catering Quote (Final)</title>
 <style>
   :root{
-    --accent:#0b4fa8;
-    --gold:#c79a2b;
-    --bg:#f6f7f9;
-    --card:#ffffff;
-    --muted:#6c6f76;
-    --radius:12px;
-    font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-  }
-  body{margin:0;background:var(--bg);color:#222;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px}
+  --accent: #071a3b;       /* deep dark blue */
+  --gold:   #d4af37;       /* golden/yellowish */
+  --bg:     #000000;       /* page background (black) */
+  --card:   #0b0b0b;       /* dark card fallback */
+  --muted:  #cfc8b0;       /* muted/goldish text for secondary info */
+  --radius: 12px;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+  body{
+  margin:0;
+  background:var(--bg);
+  color:#fff;
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:28px;
+}
   .app{width:100%;max-width:1200px}
   .topbar{display:flex;align-items:center;gap:16px;margin-bottom:16px}
-  .brand h1{margin:0;font-size:20px;color:var(--accent)}
+  .brand h1{ margin:0; font-size:20px; color:var(--gold); }
   .layout{display:grid;grid-template-columns:1fr 420px;gap:18px}
-  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(12,18,28,0.06);padding:18px}
+  .card{
+  background: linear-gradient(180deg, rgba(11,11,11,0.98), rgba(7,26,59,0.96));
+  border-radius:var(--radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.75);
+  padding:18px;
+  color:#fff;
+  border: 1px solid rgba(212,175,55,0.08);
+}
   .wizard-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
   .stepText{color:var(--muted);font-size:13px}
   .prog{height:8px;background:#e9f1ff;border-radius:999px;overflow:hidden;margin-top:10px}
-  .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));width:0%}
+  .prog > i{ display:block; height:100%; background:linear-gradient(90deg,var(--gold),var(--accent)); width:0% }
   .step{display:none}
   .step.active{display:block}
-  label{display:block;margin-bottom:8px;color:#222}
-  input[type="number"], select, .radio-row, input[type="text"], input[type="email"], input[type="tel"], textarea, input[type="date"]{width:100%;padding:10px;border-radius:10px;border:1px solid #e7ebf0;font-size:15px}
+  label{ display:block; margin-bottom:8px; color:#fff; }
+ input[type="number"], select, .radio-row, input[type="text"], input[type="email"], input[type="tel"], textarea, input[type="date"]{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  color:#fff;
+  font-size:15px;
+}
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.45); }
   textarea{min-height:80px;resize:vertical}
   .radio-row{display:flex;gap:12px;flex-wrap:wrap}
   .row{display:flex;gap:12px;align-items:center}
-  .small{font-size:13px;color:var(--muted)}
+  .small{color:var(--muted)}
   .controls{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
-  .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:none;font-weight:700;cursor:pointer}
-  .btn.ghost{background:transparent;color:var(--accent);border:1px solid #e2e6ee}
+  .btn{
+  background:var(--gold);
+  color:#000;
+  padding:10px 14px;
+  border-radius:10px;
+  border:none;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow: 0 6px 18px rgba(212,175,55,0.12);
+}
+.btn.ghost{
+  background:transparent;
+  color:var(--gold);
+  border:1px solid rgba(212,175,55,0.18);
+}
   .summary h3{margin-top:0}
-  .summary .line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #eee}
+  .summary .line{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,0.04); }
   .muted{color:var(--muted)}
-  .menu-modal{position:fixed;inset:0;background:rgba(6,10,20,0.55);display:none;align-items:flex-start;justify-content:center;padding:40px;z-index:60}
-  .menu-panel{background:var(--card);width:100%;max-width:1100px;border-radius:14px;padding:18px;max-height:86vh;overflow:auto}
+.menu-modal{ position:fixed; inset:0; background:rgba(0,0,0,0.75); display:none; align-items:flex-start; justify-content:center; padding:40px; z-index:60; }
+.menu-panel{
+  background: linear-gradient(180deg, rgba(7,26,59,0.98), rgba(11,11,11,0.98));
+  width:100%;
+  max-width:1100px;
+  border-radius:14px;
+  padding:18px;
+  max-height:86vh;
+  overflow:auto;
+  color:#fff;
+  border:1px solid rgba(212,175,55,0.06);
+}
   .menu-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
   .menu-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .menu-card{border-radius:10px;padding:12px;border:1px solid #eef3fb;background:linear-gradient(180deg,#fff,#fff);cursor:pointer;position:relative;min-height:88px}
-  .menu-card h4{margin:0 0 6px;font-size:15px}
-  .menu-card p{margin:0;color:var(--muted);font-size:13px}
-  .menu-card .price{position:absolute;top:10px;right:10px;background:var(--gold);color:#fff;padding:6px 8px;border-radius:8px;font-weight:700;font-size:13px}
-  .menu-card.selected{outline:3px solid rgba(11,79,168,0.15);box-shadow:0 8px 30px rgba(11,79,168,0.06);transform:translateY(-3px)}
+  .menu-card{
+  border-radius:10px;
+  padding:12px;
+  border:1px solid rgba(212,175,55,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  cursor:pointer;
+  position:relative;
+  min-height:88px;
+  color:#fff;
+}
+.menu-card h4{ color:#fff; }
+.menu-card p{ color:var(--muted); }
+  .menu-card .price{ position:absolute; top:10px; right:10px; background:var(--gold); color:#000; padding:6px 8px; border-radius:8px; font-weight:700; font-size:13px; }
+  .menu-card.selected{ outline:3px solid rgba(212,175,55,0.10); box-shadow:0 8px 30px rgba(11,26,59,0.45); transform:translateY(-3px); }
   .menu-card .selBadge{position:absolute;left:10px;bottom:10px;background:var(--accent);color:#fff;padding:6px 8px;border-radius:8px;font-size:12px}
   .menu-actions{display:flex;justify-content:space-between;gap:12px;margin-top:12px}
-  .menu-panel button.active{box-shadow:0 6px 18px rgba(11,79,168,0.08);border-color:rgba(11,79,168,0.12)}
+  .menu-panel button { color: var(--gold); border-color: rgba(212,175,55,0.08); }
+.active{box-shadow:0 6px 18px rgba(11,79,168,0.08);border-color:rgba(11,79,168,0.12)}
   /* package card styles */
   .packages-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
-  .package-card{padding:12px;border-radius:12px;border:1px solid #e9f3ff;background:linear-gradient(180deg,#fff,#fbfdff);cursor:pointer;position:relative;min-height:110px}
+  .package-card{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(212,175,55,0.08);
+  background: linear-gradient(180deg, rgba(212,175,55,0.03), rgba(7,26,59,0.14));
+  cursor:pointer;
+  position:relative;
+  min-height:110px;
+  color:#fff;
+}
   .package-card h4{margin:0;font-size:16px}
-  .package-card .meta{margin-top:8px;color:var(--muted);font-size:13px}
-  .package-card .perhead{position:absolute;top:12px;right:12px;background:var(--accent);color:#fff;padding:6px 8px;border-radius:8px;font-weight:700}
+  .package-card .meta{ margin-top:8px; color:var(--muted); font-size:13px; }
+.package-card .perhead{ position:absolute; top:12px; right:12px; background:var(--gold); color:#000; padding:6px 8px; border-radius:8px; font-weight:700; }
   .package-card.selected{outline:3px solid rgba(11,79,168,0.12);box-shadow:0 10px 30px rgba(11,79,168,0.06)}
   /* pdf preview */
   #pdfPreview{border:1px solid #eef2f8;padding:12px;border-radius:10px;background:#fff;min-height:400px;overflow:auto}
   @media(max-width:980px){ .layout{grid-template-columns:1fr} .menu-modal{padding:18px} }
+/* Make menu "Apply & Close" buttons use black text for legibility */
+#applySelections,
+#closeMenu {
+  color: #000 !important;            /* black text */
+  text-shadow: none !important;      /* remove any light text-shadow that may lighten text */
+}
+
+/* Ensure primary Apply button remains golden background with black text */
+#applySelections.btn {
+  background: var(--gold) !important;
+  border-color: rgba(0,0,0,0.06) !important;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+}
+
+/* If Close is a ghost button keep it visually subtle but with black text */
+#closeMenu.btn.ghost {
+  background: transparent !important;
+  border-color: rgba(212,175,55,0.12) !important;
+  color: #000 !important;
+}
 </style>
-<!-- jsPDF (for client-side HTML -> PDF). If your environment blocks CDN, fallback uses print dialog -->
+<!-- jsPDF & html2canvas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -88,28 +176,30 @@
       <div id="steps">
         <!-- Step 1: Customer info -->
         <div class="step active" id="step-customer">
-          <label>1) Customer details</label>
-          <div style="display:grid;gap:8px">
-            <input type="text" id="custName" placeholder="Customer name">
-            <input type="email" id="custEmail" placeholder="Email">
-            <input type="tel" id="custPhone" placeholder="Phone">
-            <input type="date" id="custDate" placeholder="Event date">
-            <textarea id="custAddress" placeholder="Event address / venue"></textarea>
-          </div>
+          <fieldset style="border:0;padding:0;margin:0">
+            <legend style="font-weight:700;margin-bottom:6px">1) Customer details</legend>
+            <div style="display:grid;gap:8px">
+              <div><label for="custName">Customer name</label><input type="text" id="custName" placeholder="Customer name"></div>
+              <div><label for="custEmail">Email</label><input type="email" id="custEmail" placeholder="Email"></div>
+              <div><label for="custPhone">Phone</label><input type="tel" id="custPhone" placeholder="Phone"></div>
+              <div><label for="custDate">Event date</label><input type="date" id="custDate" placeholder="Event date"></div>
+              <div><label for="custAddress">Event address / venue</label><textarea id="custAddress" placeholder="Event address / venue"></textarea></div>
+            </div>
+          </fieldset>
           <div class="small muted" style="margin-top:8px">We'll include these details in the PDF export.</div>
         </div>
 
         <!-- Step 2: Guests -->
         <div class="step" id="step-guests">
-          <label>2) How many guests?</label>
+          <label for="guests">2) How many guests?</label>
           <input type="number" id="guests" min="1" value="120">
           <div class="small muted" style="margin-top:6px">Enter expected guests. Some packages have minimum guest counts (noted below).</div>
         </div>
 
         <!-- Step 3: Service -->
         <div class="step" id="step-service">
-          <label>3) Service Type</label>
-          <div class="radio-row">
+          <div><label id="label-service">3) Service Type</label></div>
+          <div class="radio-row" role="radiogroup" aria-labelledby="label-service">
             <label><input type="radio" name="service" value="table" checked> Table (Plated)</label>
             <label><input type="radio" name="service" value="buffet"> Buffet</label>
           </div>
@@ -117,7 +207,7 @@
 
         <!-- Step 4: Package cards -->
         <div class="step" id="step-packages">
-          <label>4) Choose a Package</label>
+          <label for="packageSelect">4) Choose a Package</label>
           <select id="packageSelect" style="display:none"></select>
           <div class="packages-grid" id="packagesGrid"></div>
           <div style="margin-top:12px">
@@ -130,19 +220,19 @@
         <div class="step" id="step-counts">
           <label>5) Set per-guest counts</label>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
-            <div><label>Canapés per guest (0–4)</label><input type="number" id="nCanapes" min="0" max="4" value="2"></div>
-            <div><label>Starters per guest (0–4)</label><input type="number" id="nStarters" min="0" max="5" value="1"></div>
-            <div><label>Mains per guest (0–7)</label><input type="number" id="nMains" min="0" max="10" value="2"></div>
-            <div><label>Desserts per guest (0–3)</label><input type="number" id="nDesserts" min="0" max="4" value="1"></div>
+            <div><label for="nCanapes">Canapés per guest (0–4)</label><input type="number" id="nCanapes" min="0" max="4" value="2"></div>
+            <div><label for="nStarters">Starters per guest (0–4)</label><input type="number" id="nStarters" min="0" max="5" value="1"></div>
+            <div><label for="nMains">Mains per guest (0–7)</label><input type="number" id="nMains" min="0" max="10" value="2"></div>
+            <div><label for="nDesserts">Desserts per guest (0–3)</label><input type="number" id="nDesserts" min="0" max="4" value="1"></div>
           </div>
         </div>
 
         <!-- Step 6: Menu selection -->
         <div class="step" id="step-menu">
-          <label>6) Choose Dishes from Menu</label>
+          <div><label id="label-menu">6) Choose Dishes from Menu</label></div>
           <div style="margin-bottom:10px">
-            <button type="button" class="btn" id="openMenuBtnInline">Open Full Menu</button>
-            <div class="small muted" style="margin-top:8px">Pick unique items per category up to the counts set earlier. Special items add £2/head. Each juice/mocktail adds £1/head. One bread is free; second bread adds extra per head.</div>
+            <button aria-labelledby="label-menu" type="button" class="btn" id="openMenuBtnInline">Open Full Menu</button>
+            <div class="small muted" style="margin-top:8px">Pick unique items per category up to the counts set earlier. Special items add £2/head. Each juice/mocktail adds £1/head. One bread is free; second bread adds an extra per head charge.</div>
           </div>
         </div>
 
@@ -151,19 +241,19 @@
           <label>7) Extra add-ons (total, not per head) & discount</label>
           <div style="display:grid;gap:8px">
             <div style="display:flex;gap:8px">
-              <input placeholder="Add-on 1 (e.g., Live station)" id="addonLabel1" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
-              <input type="number" id="addonVal1" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <div style="flex:1"><label for="addonLabel1">Add-on 1 label</label><input placeholder="Add-on 1 (e.g., Live station)" id="addonLabel1" style="width:100%"></div>
+              <div style="width:140px"><label for="addonVal1">Add-on 1 £</label><input type="number" id="addonVal1" placeholder="£0.00" min="0" style="width:100%"></div>
             </div>
             <div style="display:flex;gap:8px">
-              <input placeholder="Add-on 2" id="addonLabel2" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
-              <input type="number" id="addonVal2" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <div style="flex:1"><label for="addonLabel2">Add-on 2 label</label><input placeholder="Add-on 2" id="addonLabel2" style="width:100%"></div>
+              <div style="width:140px"><label for="addonVal2">Add-on 2 £</label><input type="number" id="addonVal2" placeholder="£0.00" min="0" style="width:100%"></div>
             </div>
             <div style="display:flex;gap:8px">
-              <input placeholder="Add-on 3" id="addonLabel3" style="flex:1;padding:10px;border-radius:8px;border:1px solid #e8eef6">
-              <input type="number" id="addonVal3" placeholder="£0.00" min="0" style="width:140px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
+              <div style="flex:1"><label for="addonLabel3">Add-on 3 label</label><input placeholder="Add-on 3" id="addonLabel3" style="width:100%"></div>
+              <div style="width:140px"><label for="addonVal3">Add-on 3 £</label><input type="number" id="addonVal3" placeholder="£0.00" min="0" style="width:100%"></div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
-              <label style="min-width:140px">Discount (%)</label>
+              <label for="discountPct" style="min-width:140px">Discount (%)</label>
               <input type="number" id="discountPct" min="0" max="50" value="0" style="width:120px;padding:10px;border-radius:8px;border:1px solid #e8eef6">
               <div class="small muted" style="margin-left:8px">0 or 5–50% (0 = none).</div>
             </div>
@@ -172,9 +262,9 @@
 
         <!-- Step 8: PDF Preview & Download -->
         <div class="step" id="step-pdf">
-          <label>8) Preview & Download PDF</label>
+          <label id="label-pdf">8) Preview & Download PDF</label>
           <div class="small muted" style="margin-bottom:8px">This preview shows exactly what will be exported to the A4 PDF. Click "Download PDF" to generate and download.</div>
-          <div id="pdfPreview" aria-live="polite"></div>
+          <div id="pdfPreview" aria-labelledby="label-pdf" aria-live="polite"></div>
           <div style="margin-top:12px;display:flex;gap:8px">
             <button type="button" class="btn" id="downloadPdfBtn">Download PDF</button>
             <button type="button" class="btn ghost" id="openPdfInNewTab">Open preview in new tab</button>
@@ -227,7 +317,7 @@
 
 <!-- Menu modal (full normalized menu) -->
 <div class="menu-modal" id="menuModal" role="dialog" aria-modal="true">
-  <div class="menu-panel card">
+  <div class="menu-panel card" role="document">
     <div class="menu-header">
       <div>
         <h3 style="margin:0">Full Menu — pick your items</h3>
@@ -254,7 +344,7 @@
       <button type="button" class="btn ghost" data-cat="breakfast">Breakfast / Afternoon Tea</button>
     </div>
 
-    <div id="menuContent"></div>
+    <div id="menuContent" aria-live="polite"></div>
 
     <div class="menu-actions">
       <div class="small muted">Tip: choose up to the selected per-guest count in each category (unique items).</div>
@@ -284,7 +374,6 @@ const stepText = document.getElementById("stepText");
 const progBar = document.getElementById("progBar");
 
 function onEnterStep(i){
-  // when user enters the final PDF step, refresh preview
   const pdfStepIndex = steps.length - 1;
   if(i === pdfStepIndex){
     renderPdfPreview();
@@ -994,195 +1083,289 @@ function buildPlainTextQuote(b){
 }
 
 /* ================= PDF PREVIEW + DOWNLOAD ================= */
-function buildHtmlQuote(b){
-  // returns a full HTML string styled for A4 output
-  const cust = (custName.value || '-');
-  const address = (custAddress.value || '-').replace(/\n/g,'<br>');
-  const header = `
-    <div style="font-family:Arial,Helvetica,sans-serif;color:#222;">
-      <h1 style="color:#0b4fa8;margin:0 0 6px">Dawat — The Art of Cooking</h1>
-      <p style="margin:0 0 8px">Catering Quote</p>
-      <hr style="border:none;border-top:1px solid #eee;margin:8px 0 16px"/>
-    </div>`;
+// build full quote HTML used for preview and PDF rendering
+function buildFullQuoteHtml(breakdown) {
+  const sel = window.SELECTED_MENU_ITEMS || [];
+  const byCat = {};
+  sel.forEach(it => {
+    if(!byCat[it.category]) byCat[it.category] = [];
+    byCat[it.category].push(it);
+  });
 
-  const custBlock = `
-    <div style="font-size:13px;margin-bottom:12px;">
-      <strong>Customer</strong><br/>
-      Name: ${escapeHtml(cust)}<br/>
-      Email: ${escapeHtml(custEmail.value || '-')} · Phone: ${escapeHtml(custPhone.value || '-')}<br/>
-      Event date: ${escapeHtml(custDate.value || '-')}<br/>
-      Address: ${address}
-    </div>`;
+  const custNameVal = (document.getElementById('custName')?.value || '-');
+  const custEmailVal = (document.getElementById('custEmail')?.value || '-');
+  const custPhoneVal = (document.getElementById('custPhone')?.value || '-');
+  const custDateVal = (document.getElementById('custDate')?.value || '-');
+  const custAddressVal = (document.getElementById('custAddress')?.value || '-');
 
-  const bPerHead = b.buffetPerHead || 0;
-  const perHeadBlock = `
-    <div style="font-size:13px;margin-bottom:12px;">
-      <strong>Guests:</strong> ${b.guests} · <strong>Service:</strong> ${escapeHtml(b.service)} · <strong>Package:</strong> ${escapeHtml(b.pkg)}<br/><br/>
-      <strong>Per-head breakdown</strong><br/>
-      Base package: £${fmt(PRICING.packages[b.pkg] || 0)} / head<br/>
-      ${(["Bronze","Silver","Gold","Diamond","Platinum"].includes(b.pkg) && b.guests < 100) ? `Under-100 surcharge: £${fmt(PRICING.under100Surcharge)} / head<br/>` : ''}
-      Custom adjustments: £${fmt(b.adjustmentsPerHead)} / head<br/>
-      Special items surcharge: £${fmt(b.specialPerHead)} / head<br/>
-      Drinks surcharge: £${fmt(b.drinksPerHead)} / head<br/>
-      ${bPerHead>0 ? `Buffet discount: -£${fmt(bPerHead)} / head<br/>` : ''}
-      Additional bread choices: £${fmt(b.extraBreadPerHead)} / head (for ${b.breadCount || 0} breads)<br/>
-      <strong>Total per head: £${fmt(b.perHead)}</strong>
-    </div>`;
+  const al1 = (document.getElementById('addonLabel1')?.value || '').trim();
+  const al2 = (document.getElementById('addonLabel2')?.value || '').trim();
+  const al3 = (document.getElementById('addonLabel3')?.value || '').trim();
+  const av1 = Number(document.getElementById('addonVal1')?.value)||0;
+  const av2 = Number(document.getElementById('addonVal2')?.value)||0;
+  const av3 = Number(document.getElementById('addonVal3')?.value)||0;
 
-  const totalsBlock = `
-    <div style="font-size:13px;margin-bottom:12px;">
-      <strong>Totals</strong><br/>
-      Food total: £${fmt(b.foodTotal)}<br/>
-      Add-ons (total): £${fmt(b.addonsTotal)}<br/>
-      Subtotal: £${fmt(b.preDiscountGrand)}<br/>
-      Discount: ${b.discountPct}% → -£${fmt(b.discountAmount)}<br/>
-      <strong>Grand total: £${fmt(b.grandTotal)}</strong>
-    </div>`;
+  // --- REPLACE the existing `const style = \`...\`` with this ---
+const style = `
+  <style>
+    :root{
+      --accent:#071a3b;   /* deep dark blue */
+      --gold:#d4af37;     /* golden/yellowish */
+      --bg:#000000;       /* black */
+      --muted:#cfc8b0;    /* muted/goldish */
+      --card-top: #071a3b;
+      --card-bot: #0b0b0b;
+    }
+    /* Page */
+    html,body{height:100%;margin:0;padding:0;background:var(--bg);color:#fff;font-family:Helvetica,Arial,sans-serif}
+    .wrap{box-sizing:border-box;padding:22px;width:100%;background:transparent}
 
-  let serviceStatement = '';
-  if(b.service === 'table'){
-    serviceStatement = `
-      <div style="font-size:12px;margin-bottom:12px;">
-        <strong>Table service — Event Management & Staffing</strong><br/>
-        We will provide complete Event Management inclusive of onsite Event Managers, Waiters For Service, Kitchen Chefs and Crew. We will provide the Crockery, Cutlery, Glassware, Table Linens and Napkins.<br/>
-        Our designated staff will be able to serve and service your Event respectively throughout the day to the highest of standards. This includes setting up, winding down and ensuring complete execution of the Event meticulously whereby we take care of everything from Start to Finish.
-      </div>`;
-  } else {
-    serviceStatement = `
-      <div style="font-size:12px;margin-bottom:12px;">
-        <strong>Buffet service — Event Management & Staffing</strong><br/>
-        For buffet service we provide Event Management inclusive of onsite Event Managers, Buffet Attendants and Kitchen Crew. We will supply Crockery, Cutlery, Glassware where required, plus all necessary buffet equipment and replenishment service.<br/>
-        Our team will ensure dishes are replenished, temperature-controlled and presented attractively throughout service, handling setup and breakdown to guarantee a smooth buffet experience.
-      </div>`;
-  }
+    /* Header */
+    .header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+    h1{margin:0;font-size:20px;color:var(--gold);letter-spacing:0.2px}
+    .small{font-size:10.5px;color:var(--muted);margin-top:4px}
 
-  // selected items listing
-  let itemsHtml = '';
-  if(window.SELECTED_MENU_ITEMS.length){
-    const byCat = {};
-    window.SELECTED_MENU_ITEMS.forEach(it => {
-      if(!byCat[it.category]) byCat[it.category] = [];
-      byCat[it.category].push(it);
-    });
-    const catOrder = ['canapes','starters','mains_nonveg','mains_veg','rice','desserts','breads','juices','drinks','selector','breakfast'];
-    itemsHtml += '<div style="font-size:13px;margin-bottom:12px;"><strong>Selected menu items</strong><br/>';
-    catOrder.forEach(cat => {
-      if(byCat[cat] && byCat[cat].length){
-        itemsHtml += `<div style="margin-top:6px;"><em>${cat.replace(/_/g,' ')}</em><ul style="margin:6px 0 0 18px;padding:0">`;
-        byCat[cat].forEach(it => itemsHtml += `<li>${escapeHtml(it.name)}${it.special? ' *special*' : ''}</li>`);
-        itemsHtml += '</ul></div>';
-      }
-    });
-    itemsHtml += '</div>';
-  }
+    /* Info column */
+    .header .small strong{color:#fff}
+    .grid{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .card{flex:1;min-width:220px;background:linear-gradient(180deg,var(--card-top),var(--card-bot));border-radius:8px;padding:10px;border:1px solid rgba(212,175,55,0.08);box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    .card table{width:100%;border-collapse:collapse}
+    th{width:45%;text-align:left;font-size:11px;color:var(--muted);padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    td{font-size:11px;color:#fff;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .perhead{font-weight:700;color:var(--gold)}
 
+    /* Selected items list */
+    h3{margin:8px 0 4px;color:var(--gold);font-size:13px}
+    ul{margin:6px 0 0 16px;padding:0;color:#fff;font-size:11px}
+    li{margin:3px 0;line-height:1.25}
+
+    /* Addons & totals */
+    .totals{margin-top:12px;font-size:12px}
+    .total-row{display:flex;justify-content:space-between;padding:6px 0;font-weight:700;color:#fff;border-top:1px dashed rgba(255,255,255,0.03);margin-top:6px}
+    .total-row .label{color:var(--muted);font-weight:600}
+    .total-row .value{color:var(--gold)}
+
+    /* Notes area */
+    .notes{font-size:10px;color:var(--muted);margin-top:10px;line-height:1.25;padding-top:8px;border-top:1px dashed rgba(255,255,255,0.03)}
+
+    /* Make sure long lists are compact to help single-page fit */
+    .wrap, table, th, td, ul, li { box-sizing: border-box; }
+    table th, table td { padding:4px 6px; font-size:10.5px; }
+    ul { margin-left:12px; font-size:10.5px; }
+
+    /* Print friendly - remove shadows for printer clarity */
+    @media print {
+      .card { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+`;
+
+
+  const selHtmlParts = [];
+  const catOrder = ['canapes','starters','mains_nonveg','mains_veg','rice','desserts','breads','juices','drinks','selector','breakfast'];
+  catOrder.forEach(cat => {
+    if(byCat[cat] && byCat[cat].length){
+      selHtmlParts.push(`<div><strong>${cat.replace(/_/g,' ')}</strong><ul>`);
+      byCat[cat].forEach(it => selHtmlParts.push(`<li>${it.name}${it.special? ' *special*' : ''}</li>`));
+      selHtmlParts.push(`</ul></div>`);
+    }
+  });
+  Object.keys(byCat).forEach(cat => {
+    if(!catOrder.includes(cat)){
+      selHtmlParts.push(`<div><strong>${cat}</strong><ul>`);
+      byCat[cat].forEach(it => selHtmlParts.push(`<li>${it.name}${it.special? ' *special*' : ''}</li>`));
+      selHtmlParts.push(`</ul></div>`);
+    }
+  });
+
+  const selectedHtml = selHtmlParts.length ? selHtmlParts.join('') : '<div><em>No items selected</em></div>';
   const addonLines = [];
-  const al1 = (document.getElementById('addonLabel1').value || '').trim();
-  const al2 = (document.getElementById('addonLabel2').value || '').trim();
-  const al3 = (document.getElementById('addonLabel3').value || '').trim();
-  const av1 = Number(document.getElementById('addonVal1').value)||0;
-  const av2 = Number(document.getElementById('addonVal2').value)||0;
-  const av3 = Number(document.getElementById('addonVal3').value)||0;
-  if(al1) addonLines.push(`<div>${escapeHtml(al1)}: £${fmt(av1)} total</div>`);
-  if(al2) addonLines.push(`<div>${escapeHtml(al2)}: £${fmt(av2)} total</div>`);
-  if(al3) addonLines.push(`<div>${escapeHtml(al3)}: £${fmt(av3)} total</div>`);
-  const addonsHtml = addonLines.length ? `<div style="font-size:13px;margin-bottom:12px;"><strong>Add-ons</strong>${addonLines.join('')}</div>` : '';
+  if(al1) addonLines.push(`${al1}: £${fmt(av1)}`);
+  if(al2) addonLines.push(`${al2}: £${fmt(av2)}`);
+  if(al3) addonLines.push(`${al3}: £${fmt(av3)}`);
 
-  const notes = `
-    <div style="font-size:11px;color:#555;margin-top:10px;">
-      <strong>Notes:</strong>
-      <ul>
-        <li>Each selected juice/mocktail adds £1 per guest to the per-head price.</li>
-        <li>Each selected <em>*special*</em> item adds £${fmt(PRICING.specialItemPerHead)} per guest to the per-head price.</li>
-        <li>One bread choice is included free per order. If the selected bread is marked <em>*special*</em> its special surcharge still applies.</li>
-        <li>You may choose up to 2 breads; any additional bread choice beyond the first adds an extra charge per guest.</li>
-        ${b.buffetPerHead>0 ? `<li>Buffet discount of £${fmt(b.buffetPerHead)} per guest applied because service = buffet.</li>` : ''}
-      </ul>
-    </div>`;
+  const html = `
+    <!doctype html><html><head><meta charset="utf-8">${style}</head><body>
+    <div class="wrap" id="quote-pdf">
+      <div class="header">
+        <div>
+          <h1>Dawat — Catering Quote</h1>
+          <div class="small">Generated: ${new Date().toLocaleString()}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Customer: ${custNameVal}</div>
+          <div class="small">${custEmailVal} ${custPhoneVal ? '· ' + custPhoneVal : ''}</div>
+          <div class="small">Date: ${custDateVal}</div>
+          <div class="small">Venue: ${custAddressVal}</div>
+        </div>
+      </div>
 
-  const footer = `<div style="font-size:11px;color:#777;margin-top:18px">Generated: ${new Date().toLocaleString()}</div>`;
+      <div class="grid">
+        <div class="card">
+          <table>
+            <tr><th>Guests</th><td>${breakdown.guests}</td></tr>
+            <tr><th>Service</th><td>${breakdown.service}</td></tr>
+            <tr><th>Package</th><td>${breakdown.pkg}</td></tr>
+            <tr><th>Per head</th><td>£${fmt(breakdown.perHead)}</td></tr>
+            <tr><th>Drink surcharge (total)</th><td>£${fmt(breakdown.drinksTotal)}</td></tr>
+            <tr><th>Buffet discount</th><td>£${fmt(breakdown.buffetTotal)}</td></tr>
+            <tr><th>Add-ons (total)</th><td>£${fmt(breakdown.addonsTotal)}</td></tr>
+            <tr><th>Adjustments & specials</th><td>£${fmt((breakdown.adjustmentsPerHead + breakdown.specialPerHead)*breakdown.guests)}</td></tr>
+            <tr><th>Discount</th><td>${breakdown.discountPct}%</td></tr>
+          </table>
+        </div>
+      </div>
 
-  return `<div style="padding:18px;line-height:1.3">${header}${custBlock}${perHeadBlock}${totalsBlock}${serviceStatement}${itemsHtml}${addonsHtml}${notes}${footer}</div>`;
+      <div style="margin-top:8px">
+        <h3 style="margin:6px 0 4px">Selected Menu Items</h3>
+        ${selectedHtml}
+      </div>
+
+      ${ addonLines.length ? `<div style="margin-top:8px"><strong>Add-ons</strong><ul>${addonLines.map(a=>`<li>${a}</li>`).join('')}</ul></div>` : ''}
+
+      <div class="totals">
+        <div class="total-row"><div>Subtotal</div><div>£${fmt(breakdown.preDiscountGrand)}</div></div>
+        <div class="total-row"><div>Discount (-${breakdown.discountPct}%)</div><div>-£${fmt(breakdown.discountAmount)}</div></div>
+        <div class="total-row"><div>Grand total</div><div>£${fmt(breakdown.grandTotal)}</div></div>
+      </div>
+
+      <div class="notes">
+        ${ breakdown.service === 'buffet' ? 
+          `<strong>Buffet service note:</strong> For buffet service, we provide self-serve stations and set-up.` :
+          `<strong>Table service note:</strong> We will provide complete Event Management inclusive of onsite Event Managers, Waiters For Service, Kitchen Chefs and Crew. We will provide the Crockery, Cutlery, Glassware, Table Linens and Napkins. Our designated staff will be able to serve and service your Event respectively throughout the day to the highest of standards. This includes setting up, winding down and ensuring complete execution of the Event meticulously whereby we take care of everything from Start to Finish.`
+        }
+      </div>
+    </div>
+    </body></html>
+  `;
+  return html;
 }
 
-function escapeHtml(s){
-  if(!s) return '';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
-}
-
+// render pdf preview inside iframe in the preview panel
 function renderPdfPreview(){
-  const b = computeQuote();
-  const html = buildHtmlQuote(b);
-  pdfPreviewEl.innerHTML = html;
+  const breakdown = computeQuote();
+  const html = buildFullQuoteHtml(breakdown);
+  pdfPreviewEl.innerHTML = ''; // clear
+  const iframe = document.createElement('iframe');
+  iframe.style.width = '100%';
+  iframe.style.height = '1122px'; // A4-ish preview
+  iframe.style.border = 'none';
+  iframe.srcdoc = html;
+  pdfPreviewEl.appendChild(iframe);
 }
 
-/* Download PDF using jsPDF if available, else fallback to new tab + print */
-async function downloadPdf(){
-  const b = computeQuote();
-  const html = buildHtmlQuote(b);
+// ----------------- REPLACE downloadPdfSinglePage WITH THIS -----------------
+async function downloadPdfSinglePage(){
+  // ensure latest numbers
+  const breakdown = computeQuote();
+  const html = buildFullQuoteHtml(breakdown);
 
-  // try jsPDF html rendering
+  // create off-screen wrapper
+  const wrapper = document.createElement('div');
+  wrapper.style.position = 'fixed';
+  wrapper.style.left = '-20000px';
+  wrapper.style.top = '0';
+  wrapper.style.background = '#fff';
+  wrapper.id = 'pdf-temp-wrapper';
+  wrapper.innerHTML = html;
+  document.body.appendChild(wrapper);
+
   try {
-    if(window.jspdf && window.jspdf.jsPDF){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({
-        unit: 'pt',
-        format: 'a4',
-        compress: true
-      });
-      // create a temporary container for the HTML
-      const temp = document.createElement('div');
-      temp.style.width = '794px'; // approx A4 width in pts at 72dpi ~ 595pt; set broader for html2canvas; we use pts units and margin handled by jsPDF
-      temp.innerHTML = html;
-      document.body.appendChild(temp);
-      await doc.html(temp, {
-        callback: function (docArg) {
-          docArg.save('Dawat-Quote.pdf');
-          temp.remove();
-        },
-        x: 20,
-        y: 20,
-        html2canvas: { scale: 1.5 }
-      });
-      return;
+    // create jsPDF to read A4 size in points
+    const { jsPDF } = window.jspdf || {};
+    const PDFConstructor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (jsPDF ? jsPDF : null);
+    if(!PDFConstructor) throw new Error('jsPDF not found');
+
+    const pdf = new PDFConstructor({ unit: 'pt', format: 'a4' });
+    const pdfW = 595 ;   // width in points (~595)
+    const pdfH = 842 ;   // height in points (~842)
+    const marginPts = 14; // small margin in points
+
+    // conversion: points -> CSS pixels (assuming 96dpi): px = pt * 96/72
+    const pxPerPt = 96 / 72;
+
+    // choose a renderScale (higher -> sharper, but more memory). Use devicePixelRatio as baseline.
+    const baseDPR = window.devicePixelRatio || 1;
+    const renderScale = Math.max(2, Math.min(4, baseDPR * 2)); // 2..4 recommended
+
+    // set wrapper width in CSS pixels so the rendered canvas maps nicely to A4 proportions
+    // target CSS width = pdf width (pts) * pxPerPt * renderScale
+    const wrapperWidthPx = Math.round(pdfW * pxPerPt * renderScale);
+    wrapper.style.width = '794px';   // A4 width @ 96dpi
+    wrapper.style.minHeight = '1123px'; // A4 height @ 96dpi
+
+    // give the browser a tick so layout settles (helps in some environments)
+    await new Promise(r => requestAnimationFrame(r));
+
+  wrapper.style.background = '#000';
+  const innerBody = wrapper.querySelector('body');
+  if(innerBody) innerBody.style.background = '#000';
+
+    // render with html2canvas at the chosen scale
+   const canvas = await html2canvas(wrapper, {
+   scale: renderScale,
+    useCORS: true,
+    logging: false,
+  backgroundColor: '#000'
+});
+    const imgData = canvas.toDataURL('image/png');
+
+    // Compute target image size in PDF points that will *fit* inside A4 minus margins
+    const targetW_pts = pdfW - marginPts * 2; // available width in points
+    // compute image height (points) preserving aspect ratio
+    let targetH_pts = (canvas.height * targetW_pts) / canvas.width;
+
+    // If image height is taller than the page available height, scale down to fit
+    const availableH_pts = pdfH - marginPts * 2;
+    let finalW_pts = targetW_pts;
+    let finalH_pts = targetH_pts;
+    if(finalH_pts > availableH_pts){
+      const scaleDown = availableH_pts / finalH_pts;
+      finalH_pts = finalH_pts * scaleDown;
+      finalW_pts = finalW_pts * scaleDown;
     }
-    throw new Error('jsPDF not available');
-  } catch (err){
-    // fallback: open printable HTML in a new window (user can Save as PDF)
+
+    // center on page
+    const x = (pdfW - finalW_pts) / 2;
+    const y = (pdfH - finalH_pts) / 2;
+
+    // add image (dimensions are in points because pdf unit = 'pt')
+    // FORCE image to fill entire A4 page (no centering, no scaling logic)
+ pdf.addImage(
+  imgData,
+  'PNG',
+  0,
+  0,
+  pdf.internal.pageSize.getWidth(),
+  pdf.internal.pageSize.getHeight()
+);
+    // save
+    pdf.save('Dawat-Quote.pdf');
+
+  } catch (err) {
+    console.error('Single-page PDF generation failed', err);
+    alert('PDF generation failed — opening printable preview instead.');
     const w = window.open('', '_blank', 'noopener');
-    if(!w){
-      alert('Unable to open a new tab for PDF preview. Please allow popups or use the browser print dialog.');
-      return;
+    if(w){
+      w.document.write(html);
+      w.document.close();
     }
-    const css = `<style>
-      body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:28px}
-      h1{color:#0b4fa8}
-      .section{margin-bottom:12px}
-      </style>`;
-    w.document.write('<!doctype html><html><head><title>Quote — Print / Save as PDF</title>'+css+'</head><body>');
-    w.document.write(html);
-    w.document.write('<script>window.onload = function(){ window.print(); }<\/script>');
-    w.document.write('</body></html>');
-    w.document.close();
+  } finally {
+    const el = document.getElementById('pdf-temp-wrapper');
+    if(el) el.remove();
   }
 }
-
-/* Wire download button & open-in-new-tab */
-document.getElementById('downloadPdfBtn').addEventListener('click', () => {
-  downloadPdf();
-});
+/* Wire download & open preview buttons */
+document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdfSinglePage);
 document.getElementById('openPdfInNewTab').addEventListener('click', () => {
   const b = computeQuote();
-  const html = buildHtmlQuote(b);
+  const html = buildFullQuoteHtml(b);
   const w = window.open('', '_blank', 'noopener');
   if(!w){ alert('Unable to open new tab — browser blocked popups.'); return; }
-  const css = `<style>body{font-family:Arial,Helvetica,sans-serif;color:#222;padding:28px}h1{color:#0b4fa8}</style>`;
-  w.document.write('<!doctype html><html><head><title>Quote — Preview</title>'+css+'</head><body>');
   w.document.write(html);
-  w.document.write('</body></html>');
   w.document.close();
 });
-
 /* ================= RESET BTN (updated) ================= */
 function setActiveCategoryButton(cat = 'all'){
   const btns = document.querySelectorAll('.menu-panel button[data-cat]');
@@ -1233,6 +1416,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 });
 
 /* ================= INIT ================= */
+packageSelect.value = 'Bronze';
 renderPackagesGrid();
 applyPackageDefaults("Bronze");
 updateLock();
@@ -1240,8 +1424,9 @@ populateMenuItems('all');
 setActiveCategoryButton('all');
 computeQuote();
 
-/* Recompute whenever service radio changes so buffet discount updates live */
+// Recompute on service change
 document.querySelectorAll('input[name="service"]').forEach(r => r.addEventListener('change', computeQuote));
 </script>
 </body>
 </html>
+   
